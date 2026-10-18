@@ -4,6 +4,8 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import { errorMiddleware } from "./common/middleware/error.middleware.js";
+import { notFoundMiddleware } from "./common/middleware/notFound.middleware.js";
+import apiRouter from "./routes/index.routes.js"
 
 const app = express();
 
@@ -27,6 +29,11 @@ app.get("/health", (req, res) => {
     });
 });
 
+
+app.use("/api/v1", apiRouter);
+
+
+app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 
 
