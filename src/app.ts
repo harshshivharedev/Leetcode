@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
+import { errorMiddleware } from "./common/middleware/error.middleware.js";
 
 const app = express();
 
@@ -25,6 +26,8 @@ app.get("/health", (req, res) => {
         message: "Leetcode Clone API is healthy"
     });
 });
+
+app.use(errorMiddleware);
 
 
 export default app;
