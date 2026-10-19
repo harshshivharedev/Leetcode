@@ -1,5 +1,3 @@
-
-
 import { z } from "zod";
 
 export const registerSchema = z.object({
@@ -36,14 +34,6 @@ export const registerSchema = z.object({
     .int("Age must be an integer")
     .min(6, "Minimum age is 6")
     .max(80, "Maximum age is 80"),
-
-  role: z
-    .enum(["user", "admin"])
-    .default("user"),
-
-  problemsSolved: z
-    .array(z.string())
-    .default([]),
 });
 
 export const loginSchema = z.object({
