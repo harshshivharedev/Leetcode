@@ -34,3 +34,10 @@ export const registerUser = async (data: RegisterInput) => {
 
     return safeUser;
 }
+
+
+
+
+
+// async handler not used in services , its use in controllers
+// all fields pass in service in data throw controller , controller has req.body for fields
