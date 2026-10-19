@@ -12,3 +12,8 @@ const startServer = async () => {
     })
 }
 
+startServer().catch((error: unknown) => {
+    console.error("Server startup fail");
+    process.exit(1);
+})
+
