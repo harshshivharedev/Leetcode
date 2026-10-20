@@ -40,9 +40,20 @@ export const loginSchema = z.object({
   email: z
     .string()
     .trim()
-    .email("Please provide a valid email"),
+    .email("Please provide a valid email")
+    .optional(),
+
+  username: z
+    .string()
+    .trim()
+    .min(3)
+    .optional(),
 
   password: z
     .string()
     .min(1, "Password is required"),
-});
+})
+.refine((data) => Boolean(data.email || data.username),{    // requirement only one 
+  message: "Email or username is required",
+  path: ["email"],
+})

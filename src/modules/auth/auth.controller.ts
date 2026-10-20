@@ -3,8 +3,8 @@
 import type{ Request, Response} from "express";
 import { ApiError } from "../../common/errors/apiErrors.js";
 import { asyncHandler } from "../../common/utils/asyncHandler.js";
-import { registerSchema } from "./validation.auth.js";
-import { registerUser } from "./auth.service.js";
+import { loginSchema, registerSchema } from "./validation.auth.js";
+import { registerUser, loginUser } from "./auth.service.js";
 
 export const registerController = asyncHandler(
     async( req:Request, res: Response) => {
@@ -26,6 +26,27 @@ export const registerController = asyncHandler(
             data: user,
         })
     }
+)
+export const loginController = asyncHandler(
+      async(req:Request, res: Response) => {
+          const parsedData = loginSchema.safeParse(req.body);
+          if(!parsedData.success) {
+            throw new ApiError(
+                  400,
+                  "Invalid login data",
+                  parsedData.error.issues
+            );
+          }
+
+          const result = await loginUser(parsedData.data);
+
+          res.status(200).json({
+            success: true,
+            message: "Login successful",
+            data: result,
+          })
+          
+      }
 )
 
 
