@@ -2,8 +2,10 @@
 import bcrypt from "bcryptjs";
 import { ApiError } from "../../common/errors/apiErrors.js";
 import { User } from "../users/user.models.js"
-import { RegisterInput } from "./types.auth.js";
-                                    
+import { LoginInput, RegisterInput } from "./types.auth.js"
+import jwt from "jsonwebtoken"  
+import { env } from "../../config/env.js";
+
                                   // data <-- req.body throw controller
 export const registerUser = async (data: RegisterInput) => {
     const { email, username, password } = data;
@@ -33,6 +35,47 @@ export const registerUser = async (data: RegisterInput) => {
     const {password: _password, ...safeUser} = userObject;
 
     return safeUser;
+}
+
+// Login Service
+
+export const loginUser = async (data: LoginInput) => {
+    const {email, username, password} = data;
+
+    const user = await User.findOne({
+        $or: [{email}, {username}]
+    }).select("+password");
+
+    if(!user){
+        throw new ApiError(401, "Invalid credentials");
+    }
+
+    const isValidPassword = await bcrypt.compare(
+        password,
+        user.password
+    );
+
+    if(!isValidPassword) {
+        throw new ApiError(401, "Invalid credential");
+    }
+
+    const accessToken = jwt.sign(
+        {
+            userId: user._id.toString(),
+        },
+        env.JWT_SECRET,
+        {
+            expiresIn: "1d"
+        }
+    )
+    const userObject = user.toObject();
+
+    const {password: _password, ...safeUser} = userObject
+
+    return {
+        accessToken,
+        user: safeUser
+    }
 }
 
 
