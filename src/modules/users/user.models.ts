@@ -32,6 +32,7 @@ export interface Iuser {
     age: number;
     role: UserRole;
     problemSolved: Types.ObjectId[];
+    refreshTokenHash?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -95,7 +96,13 @@ const userSchema = new Schema (
                 type: Schema.Types.ObjectId,
                 ref: "Problem",
             }
-        ]
+        ],
+
+        refreshTokenHash: {
+            type: String,
+            select: false,
+            default: null,
+        }
     },
     {
         timestamps: true

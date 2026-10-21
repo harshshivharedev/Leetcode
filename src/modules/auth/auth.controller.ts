@@ -30,6 +30,7 @@ export const registerController = asyncHandler(
 export const loginController = asyncHandler(
       async(req:Request, res: Response) => {
           const parsedData = loginSchema.safeParse(req.body);
+
           if(!parsedData.success) {
             throw new ApiError(
                   400,
@@ -38,12 +39,23 @@ export const loginController = asyncHandler(
             );
           }
 
-          const result = await loginUser(parsedData.data);
+          const {accessToken, refreshToken, user} = await loginUser(parsedData.data);
+
+          res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 7*24*60*60*1000,
+            path: "/api/v1/auth"
+          })
 
           res.status(200).json({
             success: true,
             message: "Login successful",
-            data: result,
+            data: {
+                 accessToken,
+                 user,
+            },
           })
           
       }

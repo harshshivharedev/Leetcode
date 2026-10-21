@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import { ApiError } from "../../common/errors/apiErrors.js";
 import { User } from "../users/user.models.js"
 import { LoginInput, RegisterInput } from "./types.auth.js"
+import { generateAccessToken } from "../../common/utils/token.utils.js";
+import { generateRefreshToken } from "../../common/utils/token.utils.js";
 import jwt from "jsonwebtoken"  
 import { env } from "../../config/env.js";
 
@@ -59,23 +61,29 @@ export const loginUser = async (data: LoginInput) => {
         throw new ApiError(401, "Invalid credential");
     }
 
-    const accessToken = jwt.sign(
-        {
-            userId: user._id.toString(),
-        },
-        env.JWT_SECRET,
-        {
-            expiresIn: "1d"
-        }
-    )
+   const userId = user._id.toString();
+
+    const accessToken = generateAccessToken(userId);
+    const refreshToken = generateRefreshToken(userId);
+
+    const refreshTokenHash = await bcrypt.hash(refreshToken, 12);
+
+    user.refreshTokenHash = refreshTokenHash;
+    await user.save();
+
     const userObject = user.toObject();
 
-    const {password: _password, ...safeUser} = userObject
+    const {
+        password: _password,
+        refreshTokenHash: _refreshTokenHash,
+        ...safeUser
+    } = userObject;
 
     return {
         accessToken,
-        user: safeUser
-    }
+        refreshToken,
+        user: safeUser,
+    };
 }
 
 
