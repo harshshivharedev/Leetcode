@@ -1,14 +1,15 @@
 
 import { Router } from "express";
-import { loginController, registerController } from "../modules/auth/auth.controller.js";
-import { authMiddleware } from "../common/middleware/auth.middleware.js";
-import { getCurrentUserController } from "../modules/users/user.controller.js";
+import {
+  loginController,
+  registerController,
+  refreshTokenController,
+} from "../modules/auth/auth.controller.js";
 
-const userRouter = Router();
+const authRouter = Router();
 
-userRouter.post("/register", registerController);
-userRouter.post("/login", loginController);
-userRouter.get("/me", authMiddleware, getCurrentUserController);
+authRouter.post("/register", registerController);
+authRouter.post("/login", loginController);
+authRouter.post("/refresh", refreshTokenController);
 
-
-export default userRouter;
+export default authRouter;

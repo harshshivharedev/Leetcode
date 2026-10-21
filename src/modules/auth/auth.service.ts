@@ -3,10 +3,12 @@ import bcrypt from "bcryptjs";
 import { ApiError } from "../../common/errors/apiErrors.js";
 import { User } from "../users/user.models.js"
 import { LoginInput, RegisterInput } from "./types.auth.js"
-import { generateAccessToken } from "../../common/utils/token.utils.js";
-import { generateRefreshToken } from "../../common/utils/token.utils.js";
-import jwt from "jsonwebtoken"  
-import { env } from "../../config/env.js";
+import {
+    generateAccessToken,
+    generateRefreshToken,
+    verifyRefreshToken,
+} from "../../common/utils/token.utils.js";
+
 
                                   // data <-- req.body throw controller
 export const registerUser = async (data: RegisterInput) => {
@@ -44,9 +46,12 @@ export const registerUser = async (data: RegisterInput) => {
 export const loginUser = async (data: LoginInput) => {
     const {email, username, password} = data;
 
-    const user = await User.findOne({
-        $or: [{email}, {username}]
-    }).select("+password");
+    const filters = [];
+
+    if (email) filters.push({ email });
+    if (username) filters.push({ username });
+
+    const user = await User.findOne({ $or: filters }).select("+password");
 
     if(!user){
         throw new ApiError(401, "Invalid credentials");
@@ -58,7 +63,7 @@ export const loginUser = async (data: LoginInput) => {
     );
 
     if(!isValidPassword) {
-        throw new ApiError(401, "Invalid credential");
+        throw new ApiError(401, "Invalid credentials");
     }
 
    const userId = user._id.toString();
@@ -85,6 +90,40 @@ export const loginUser = async (data: LoginInput) => {
         user: safeUser,
     };
 }
+
+
+
+export const refreshAccessToken = async (
+    refreshToken: string,
+    ) => {
+        let userId: string;
+
+        try {
+            userId = verifyRefreshToken(refreshToken);
+        } catch {
+            throw new ApiError(401, "Invalid or expired refresh token");
+        }
+
+        const user = await User.findById(userId)
+            .select("+refreshTokenHash");
+
+        if (!user || !user.refreshTokenHash) {
+            throw new ApiError(401, "Invalid refresh token");
+        }
+
+        const isValidRefreshToken = await bcrypt.compare(
+            refreshToken,
+            user.refreshTokenHash,
+        );
+
+        if (!isValidRefreshToken) {
+            throw new ApiError(401, "Invalid refresh token");
+        }
+
+        const accessToken = generateAccessToken(userId);
+
+        return accessToken;
+};
 
 
 

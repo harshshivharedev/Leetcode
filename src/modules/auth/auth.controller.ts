@@ -5,6 +5,7 @@ import { ApiError } from "../../common/errors/apiErrors.js";
 import { asyncHandler } from "../../common/utils/asyncHandler.js";
 import { loginSchema, registerSchema } from "./validation.auth.js";
 import { registerUser, loginUser } from "./auth.service.js";
+import { refreshAccessToken } from "./auth.service.js";
 
 export const registerController = asyncHandler(
     async( req:Request, res: Response) => {
@@ -60,6 +61,26 @@ export const loginController = asyncHandler(
           
       }
 )
+
+export const refreshTokenController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      throw new ApiError(401, "Refresh token is required");
+    }
+
+    const accessToken = await refreshAccessToken(refreshToken);
+
+    res.status(200).json({
+      success: true,
+      message: "Access token refreshed successfully",
+      data: {
+        accessToken,
+      },
+    });
+  },
+);
 
 
 

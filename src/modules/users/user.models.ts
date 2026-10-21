@@ -23,7 +23,7 @@ export type UserRole = "user" | "admin";
   Ye interface sirf TypeScript ko batata hai ki User object me
   kaun-kaun se fields aur unke types honge.
 */
-export interface Iuser {
+export interface IUser {
     firstName: string;
     lastName: string;
     username: string;
@@ -31,13 +31,13 @@ export interface Iuser {
     password: string;
     age: number;
     role: UserRole;
-    problemSolved: Types.ObjectId[];
+    problemsSolved: Types.ObjectId[];
     refreshTokenHash?: string;
     createdAt: Date;
     updatedAt: Date;
 }
 
-const userSchema = new Schema (
+const userSchema = new Schema<IUser>(
     {
         firstName: {
             type: String,
@@ -52,7 +52,7 @@ const userSchema = new Schema (
             required: [true,"Last name is required"],
             trim: true,
             minlength: 3,
-            maxLength: 20,
+            maxlength: 20,
         },
 
         username: {
@@ -60,8 +60,8 @@ const userSchema = new Schema (
             required: [true, "Username is required"],
             unique: true,
             trim: true,
-            minLength: 3,
-            maxLength: 30,
+            minlength: 3,
+            maxlength: 30,
         },
 
         email: {
@@ -109,4 +109,4 @@ const userSchema = new Schema (
     }
 )
 
-export const User = model("User", userSchema)
+export const User = model<IUser>("User", userSchema);

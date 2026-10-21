@@ -26,3 +26,17 @@ export const generateRefreshToken = (userId: string): string => {
     },
   );
 };
+
+export const verifyRefreshToken = (token: string): string => {
+  const decodedToken = jwt.verify(token, env.JWT_SECRET);
+
+  if (
+    typeof decodedToken === "string" ||
+    !decodedToken ||
+    typeof decodedToken.userId !== "string"
+  ) {
+    throw new Error("Invalid refresh token");
+  }
+
+  return decodedToken.userId;
+};
