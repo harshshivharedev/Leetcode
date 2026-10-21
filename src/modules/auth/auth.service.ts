@@ -125,6 +125,22 @@ export const refreshAccessToken = async (
         return accessToken;
 };
 
+export const logoutUser = async (refreshToken?: string): Promise<void> => {
+    if (!refreshToken) return;
+
+    try {
+        const userId = verifyRefreshToken(refreshToken);
+        const user = await User.findById(userId).select("+refreshTokenHash");
+
+        if (user) {
+            user.refreshTokenHash = null;
+            await user.save();
+        }
+    } catch {
+        // Logout should remain successful even if the token is expired/invalid.
+    }
+};
+
 
 
 

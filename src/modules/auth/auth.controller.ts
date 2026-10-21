@@ -4,7 +4,7 @@ import type{ Request, Response} from "express";
 import { ApiError } from "../../common/errors/apiErrors.js";
 import { asyncHandler } from "../../common/utils/asyncHandler.js";
 import { loginSchema, registerSchema } from "./validation.auth.js";
-import { registerUser, loginUser } from "./auth.service.js";
+import { logoutUser, registerUser, loginUser } from "./auth.service.js";
 import { refreshAccessToken } from "./auth.service.js";
 
 export const registerController = asyncHandler(
@@ -78,6 +78,25 @@ export const refreshTokenController = asyncHandler(
       data: {
         accessToken,
       },
+    });
+  },
+);
+
+export const logoutController = asyncHandler(
+  async (req: Request, res: Response) => {
+    await logoutUser(req.cookies.refreshToken);
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/api/v1/auth",
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Logout successful",
+      data: null,
     });
   },
 );

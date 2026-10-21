@@ -32,7 +32,7 @@ export interface IUser {
     age: number;
     role: UserRole;
     problemsSolved: Types.ObjectId[];
-    refreshTokenHash?: string;
+    refreshTokenHash?: string | null;
     createdAt: Date;
     updatedAt: Date;
 }
