@@ -7,8 +7,9 @@ export const generateAccessToken = (userId: string): string => {
     return jwt.sign(
         {
             userId,
+            type: "access",
         },
-        env.JWT_SECRET,
+        env.JWT_ACCESS_SECRET,
         {
             expiresIn: "15m",
         }
@@ -19,8 +20,9 @@ export const generateRefreshToken = (userId: string): string => {
   return jwt.sign(
     {
       userId,
+      type: "refresh",
     },
-    env.JWT_SECRET,
+    env.JWT_REFRESH_SECRET,
     {
       expiresIn: "7d",
     },
@@ -28,12 +30,13 @@ export const generateRefreshToken = (userId: string): string => {
 };
 
 export const verifyRefreshToken = (token: string): string => {
-  const decodedToken = jwt.verify(token, env.JWT_SECRET);
+  const decodedToken = jwt.verify(token, env.JWT_REFRESH_SECRET);
 
   if (
     typeof decodedToken === "string" ||
     !decodedToken ||
-    typeof decodedToken.userId !== "string"
+    typeof decodedToken.userId !== "string" ||
+    decodedToken.type !== "refresh"
   ) {
     throw new Error("Invalid refresh token");
   }

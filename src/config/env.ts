@@ -12,7 +12,8 @@ const envSchema = z.object({
     PORT: z.coerce.number().int().positive().default(5000),
 
     MONGO_URI: z.string().min(1, "MONOGO_URI is required"),
-    JWT_SECRET: z.string().min(16, "JWT_SECRET must be at least 16 characters"),
+    JWT_ACCESS_SECRET: z.string().min(16, "JWT_ACCESS_SECRET must be at least 16 characters"),
+    JWT_REFRESH_SECRET: z.string().min(16, "JWT_REFRESH_SECRET must be at least 16 characters"),
     CLIENT_URL: z.string().url("CLIENT_URL must be a valid URL"),
 
 });

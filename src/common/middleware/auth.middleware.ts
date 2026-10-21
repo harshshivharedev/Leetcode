@@ -18,12 +18,13 @@ export const authMiddleware: RequestHandler = (req, _res, next) => {
   }
 
   try {
-    const decodedToken = jwt.verify(token, env.JWT_SECRET);
+    const decodedToken = jwt.verify(token, env.JWT_ACCESS_SECRET);
 
     if (
       typeof decodedToken === "string" ||
       !decodedToken ||
-      typeof decodedToken.userId !== "string"
+      typeof decodedToken.userId !== "string" ||
+      decodedToken.type !== "access"
     ) {
       throw new ApiError(401, "Invalid access token");
     }
