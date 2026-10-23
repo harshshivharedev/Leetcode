@@ -24,7 +24,7 @@ export const registerUser = async (data: RegisterInput) => {
     }
 
     // password hash
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
 
     // user create , password replace with hashed password 
@@ -71,7 +71,7 @@ export const loginUser = async (data: LoginInput) => {
     const accessToken = generateAccessToken(userId);
     const refreshToken = generateRefreshToken(userId);
 
-    const refreshTokenHash = await bcrypt.hash(refreshToken, 12);
+    const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
 
     user.refreshTokenHash = refreshTokenHash;
     await user.save();

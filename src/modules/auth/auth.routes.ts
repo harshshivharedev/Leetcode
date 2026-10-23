@@ -5,7 +5,7 @@ import {
   logoutController,
   registerController,
   refreshTokenController,
-} from "../modules/auth/auth.controller.js";
+} from "./auth.controller.js";
 
 const authRouter = Router();
 

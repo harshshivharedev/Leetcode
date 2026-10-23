@@ -5,12 +5,14 @@ import { ApiError } from "../errors/apiErrors.js";
 import { env } from "../../config/env.js";
 
 export const authMiddleware: RequestHandler = (req, _res, next) => {
+  // token ko authorization header se extract karna
   const authorizationHeader = req.headers.authorization;
 
   if (!authorizationHeader) {
     throw new ApiError(401, "Authorization token is required");
   }
 
+  // header split into bearer schema and token 
   const [scheme, token] = authorizationHeader.split(" ");
 
   if (scheme !== "Bearer" || !token) {
@@ -18,6 +20,7 @@ export const authMiddleware: RequestHandler = (req, _res, next) => {
   }
 
   try {
+    // verify token 
     const decodedToken = jwt.verify(token, env.JWT_ACCESS_SECRET);
 
     if (
