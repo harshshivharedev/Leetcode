@@ -34,3 +34,16 @@ export interface IProblem {
   createdAt: Date;
   updatedAt: Date;
 }
+
+
+// this is for admin to create problems
+export interface CreateProblemInput {
+  title : string;
+  slug: string;
+  description: string;
+  difficulty: "easy" | "medium" | "hard";
+  tags: string[];
+  visibleTestCases: VisibleTestCase[],
+  hiddenTestCases: HiddenTestCase[],
+  starterCode: StarterCode[];
+}
