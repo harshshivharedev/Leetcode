@@ -1,0 +1,53 @@
+
+import { z } from "zod";
+
+const visibleTestCaseSchema = z.object({
+  input: z.string().min(1, "Input is required"),
+  output: z.string().min(1, "Output is required"),
+  explanation: z.string().min(1, "Explanation is required"),
+});
+
+const hiddenTestCaseSchema = z.object({
+  input: z.string().min(1, "Input is required"),
+  output: z.string().min(1, "Output is required"),
+});
+
+const starterCodeSchema = z.object({
+  language: z.string().min(1, "Language is required"),
+  initialCode: z.string().min(1, "Initial code is required"),
+});
+
+export const createProblemSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(3, "Title must be at least 3 characters"),
+
+  slug: z
+    .string()
+    .trim()
+    .min(3, "Slug must be at least 3 characters"),
+
+  description: z
+    .string()
+    .trim()
+    .min(10, "Description must be at least 10 characters"),
+
+  difficulty: z.enum(["easy", "medium", "hard"]),
+
+  tags: z
+    .array(z.string().trim().min(1))
+    .min(1, "At least one tag is required"),
+
+  visibleTestCases: z
+    .array(visibleTestCaseSchema)
+    .min(1, "At least one visible test case is required"),
+
+  hiddenTestCases: z
+    .array(hiddenTestCaseSchema)
+    .min(1, "At least one hidden test case is required"),
+
+  starterCode: z
+    .array(starterCodeSchema)
+    .min(1, "At least one starter code is required"),
+});
