@@ -8,7 +8,9 @@ import {
     getProblemBySlug,
     updateProblemPublishStatus,
     updateProblem,
+    deleteProblem
 } from "./problem.service.js";
+
 
 
 
@@ -130,3 +132,22 @@ export const updateProblemController = asyncHandler(
         });
     },
 );
+
+
+export const deleteProblemController = asyncHandler(
+    async(req: Request, res: Response) => {
+        const problemId = req.params.problemId;
+
+        if(typeof problemId !== "string" || problemId.length === 0){
+            throw new ApiError(400, "Problem Id is required");
+        }
+
+        await deleteProblem(problemId);
+
+        res.status(200).json({
+            success: true,
+            message: "Problem deleted successfully",
+            data: null
+        })
+    }
+)

@@ -98,4 +98,16 @@ export const updateProblem = async(
 }
 
 
+export const deleteProblem = async (problemId: string) => {
+    const deletedProblem = await Problem.findByIdAndDelete(problemId)
+        .select("-hiddenTestCases");
+
+    if (!deletedProblem) {
+        throw new ApiError(404, "Problem not found");
+    }
+
+    return deletedProblem;
+};
+
+
 
