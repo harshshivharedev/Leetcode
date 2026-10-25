@@ -1,12 +1,13 @@
 import { ApiError } from "../../common/errors/apiErrors.js";
 import { asyncHandler } from "../../common/utils/asyncHandler.js";
-import { createProblemSchema } from "./problem.validation.js";
+import { createProblemSchema, updateProblemSchema } from "./problem.validation.js";
 import { Request, Response } from "express";
 import {
     createProblem,
     getPublishedProblems,
     getProblemBySlug,
     updateProblemPublishStatus,
+    updateProblem,
 } from "./problem.service.js";
 
 
@@ -98,3 +99,34 @@ export const updateProblemPublishStatusController = asyncHandler(
         })
     }
 )
+
+export const updateProblemController = asyncHandler(
+    async (req: Request, res: Response) => {
+        const problemId = req.params.problemId;
+
+        if (typeof problemId !== "string" || problemId.length === 0) {
+            throw new ApiError(400, "Problem ID is required");
+        }
+
+        const parsedData = updateProblemSchema.safeParse(req.body);
+
+        if (!parsedData.success) {
+            throw new ApiError(
+                400,
+                "Invalid problem data",
+                parsedData.error.issues,
+            );
+        }
+
+        const updatedProblem = await updateProblem(
+            problemId,
+            parsedData.data,
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "Problem updated successfully",
+            data: updatedProblem,
+        });
+    },
+);

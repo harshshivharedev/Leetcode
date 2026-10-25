@@ -2,7 +2,7 @@
 import { Router } from "express";
 import { adminMiddleware } from "../../common/middleware/admin.middleware.js";
 import { authMiddleware } from "../../common/middleware/auth.middleware.js";
-import { createProblemController, getProblemBySlugController, getProblemsController, updateProblemPublishStatusController } from "./problem.controller.js";
+import { createProblemController, getProblemBySlugController, getProblemsController, updateProblemController, updateProblemPublishStatusController } from "./problem.controller.js";
 
 
 const problemRouter = Router();
@@ -21,6 +21,12 @@ problemRouter.patch(
     authMiddleware, 
     adminMiddleware, 
     updateProblemPublishStatusController
+)
+problemRouter.patch(
+    "/:problemId",
+    authMiddleware,
+    adminMiddleware,
+    updateProblemController
 )
 
 

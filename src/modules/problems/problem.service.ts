@@ -3,6 +3,7 @@
 import { ApiError } from "../../common/errors/apiErrors.js";
 import { Problem } from "./problem.model.js";
 import { CreateProblemInput } from "./problem.types.js";
+import type { UpdateProblemInput } from "./problem.validation.js";
 
 
 //  for createing problems by admin
@@ -73,5 +74,28 @@ export const updateProblemPublishStatus = async(
 
     return updatedProblem;
 }
+
+
+export const updateProblem = async(
+    problemId: string,
+    validatedUpdateData: UpdateProblemInput,
+) => {
+    const problem = await Problem.findById(problemId);
+
+    if(!problem) {
+        throw new ApiError(404, "Problem not found")
+    }
+
+    Object.assign(problem, validatedUpdateData);
+
+    await problem.save();
+
+    const upadatedProblem = await Problem.findById(
+        problemId
+    ).select("-hiddenTestCases");
+
+    return upadatedProblem;
+}
+
 
 
