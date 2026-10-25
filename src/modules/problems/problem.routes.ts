@@ -2,7 +2,7 @@
 import { Router } from "express";
 import { adminMiddleware } from "../../common/middleware/admin.middleware.js";
 import { authMiddleware } from "../../common/middleware/auth.middleware.js";
-import { createProblemController, getProblemsController } from "./problem.controller.js";
+import { createProblemController, getProblemBySlugController, getProblemsController, updateProblemPublishStatusController } from "./problem.controller.js";
 
 
 const problemRouter = Router();
@@ -15,6 +15,13 @@ problemRouter.post(
 )
 
 problemRouter.get("/", getProblemsController);
+problemRouter.get("/:slug", getProblemBySlugController);
+problemRouter.patch(
+    "/:problemId/publish",
+    authMiddleware, 
+    adminMiddleware, 
+    updateProblemPublishStatusController
+)
 
 
 export default problemRouter;

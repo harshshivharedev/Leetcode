@@ -27,7 +27,7 @@ export const createProblem = async (
     return problem;
 }
 
-export const getpublishedProblem = async () => {
+export const getPublishedProblems = async () => {
     const problems = await Problem.find({
         isPublished: true,
     })
@@ -35,6 +35,43 @@ export const getpublishedProblem = async () => {
     .sort({ createdAt: -1});
 
     return problems;
+}
+
+
+export const getProblemBySlug = async(
+    slug: string
+) => {
+    const problem = await Problem.findOne({
+        slug,
+        isPublished: true,
+    }).select("-hiddenTestCases");
+
+    if(!problem) {
+        throw new ApiError(404, "Problem not found")
+    }
+
+    return problem;
+}
+
+
+export const updateProblemPublishStatus = async(
+    problemId: string,
+    isPublished: boolean
+) => {
+    const problem = await Problem.findById(problemId);
+
+    if(!problem){
+        throw new ApiError(404, "Problem not found")
+    }
+
+    problem.isPublished = isPublished;
+
+    await problem.save();
+
+    const updatedProblem = await Problem.findById(problemId)
+        .select("-hiddenTestCases");
+
+    return updatedProblem;
 }
 
 

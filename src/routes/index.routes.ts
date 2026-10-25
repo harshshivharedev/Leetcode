@@ -11,6 +11,6 @@ const router = Router();
 router.use("/auth", authRouter);
 router.use("/users", usersRouter);
 router.use("/admin", adminRouter);
-router.use("/admin/problems", problemRouter);
+router.use("/problems", problemRouter);
 
 export default router;
