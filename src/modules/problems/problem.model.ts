@@ -85,6 +85,24 @@ const problemSchema = new Schema<IProblem>(
       },
     ],
 
+    referenceSolution: {
+      type: [
+        {
+          language: {
+            type: String,
+            required: true,
+          },
+          completeCode: {
+            type: String,
+            required: true,
+          },
+        },
+      ],
+      required: [true, "Reference solution is required"],
+      select: false,
+    },
+      
+
     problemCreator: {
       type: Schema.Types.ObjectId,
       ref: "User",

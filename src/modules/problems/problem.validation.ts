@@ -17,6 +17,11 @@ const starterCodeSchema = z.object({
   initialCode: z.string().min(1, "Initial code is required"),
 });
 
+const referenceSolutionSchema = z.object({
+  language: z.string().min(1, "Language is required"),
+  completeCode: z.string().min(1, "Complete code is required"),
+});
+
 export const createProblemSchema = z.object({
   title: z
     .string()
@@ -50,6 +55,10 @@ export const createProblemSchema = z.object({
   starterCode: z
     .array(starterCodeSchema)
     .min(1, "At least one starter code is required"),
+
+  referenceSolution: z
+    .array(referenceSolutionSchema)
+    .min(1, "At least one reference solution is required"),
 });
 
 

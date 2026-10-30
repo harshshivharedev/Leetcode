@@ -20,6 +20,11 @@ export interface StarterCode {
   initialCode: string;
 }
 
+export interface ReferenceSolution {
+  language: string;
+  completeCode: string;
+}
+
 export interface IProblem {
   title: string;
   slug: string;
@@ -29,6 +34,7 @@ export interface IProblem {
   visibleTestCases: VisibleTestCase[];
   hiddenTestCases: HiddenTestCase[];
   starterCode: StarterCode[];
+  referenceSolution: ReferenceSolution[];
   problemCreator: Types.ObjectId;
   isPublished: boolean;
   createdAt: Date;
@@ -46,4 +52,5 @@ export interface CreateProblemInput {
   visibleTestCases: VisibleTestCase[],
   hiddenTestCases: HiddenTestCase[],
   starterCode: StarterCode[];
+  referenceSolution : ReferenceSolution[];
 }
