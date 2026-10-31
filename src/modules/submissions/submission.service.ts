@@ -1,6 +1,7 @@
 
 
 import { ApiError } from "../../common/errors/apiErrors.js";
+import { submissionQueue } from "../../queue/submission.queue.js";
 import { Problem } from "../problems/problem.model.js";
 import { Submission } from "./submission.model.js";
 import type { CreateSubmissionInput } from "./submission.validation.js";
@@ -29,6 +30,13 @@ export const createSubmission = async (
         language: submissionData.language,
         status: "pending",
     });
+
+    await submissionQueue.add(
+        "execute-submission",
+        {
+            submissionId: submission._id.toString(),
+        }
+    )
 
     return submission;
 };

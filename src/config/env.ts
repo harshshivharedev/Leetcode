@@ -15,7 +15,8 @@ const envSchema = z.object({
     JWT_ACCESS_SECRET: z.string().min(16, "JWT_ACCESS_SECRET must be at least 16 characters"),
     JWT_REFRESH_SECRET: z.string().min(16, "JWT_REFRESH_SECRET must be at least 16 characters"),
     CLIENT_URL: z.string().url("CLIENT_URL must be a valid URL"),
-    JUDGE0_BASE_URL: z.string().url("JUDGE0_BASE_URL must be a valid URL")
+    JUDGE0_BASE_URL: z.string().url("JUDGE0_BASE_URL must be a valid URL"),
+    REDIS_URL: z.string().url("REDIS_URL must be a valid URL"),
 
 });
 
