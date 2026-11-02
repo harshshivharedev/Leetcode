@@ -6,8 +6,10 @@ import { connectDatabase } from "../config/database.js";
 import { Submission } from "../modules/submissions/submission.model.js";
 import { Problem } from "../modules/problems/problem.model.js";
 import { ApiError } from "../common/errors/apiErrors.js";
-import { submitCodeToJudge0 } from "../common/clients/judge0.client.js";
+import { submitCodeToJudge0, waitForJudge0Result } from "../common/clients/judge0.client.js";
 import { judge0LanguageIds } from "../common/constants/judge0.languages.js";
+import type { SubmissionStatus } from "../modules/submissions/submission.types.js";
+
 
 
 await connectDatabase();
@@ -59,6 +61,44 @@ export const submissionWorker = new Worker(
             stdin: firstTestCase.input,
             expectedOutput: firstTestCase.output,
         })
+
+        const judge0Result = await waitForJudge0Result(judge0Token);
+
+        console.log("judge0 result:", judge0Result);
+
+        const statusMap: Record<string, SubmissionStatus> = {
+            Accepted: "accepted",
+            "Wrong Answer": "wrong_answer",
+            "Runtime Error": "runtime_error",
+            "Time Limit Exceeded": "time_limit_exceeded",
+            "Compilation Error": "runtime_error",
+        };
+
+        const judge0Status = judge0Result.status.description;
+
+        const submissionStatus = statusMap[judge0Status];
+
+        if(!submissionStatus){
+            throw new ApiError(
+                400,
+                `Unsupported Judge0 status: ${judge0Status}`
+            );
+        }
+        // submission status update and find runtime(miliseconds) , memory(bytes) 
+        submission.status = submissionStatus;
+        submission.runtime = judge0Result.time? Number(judge0Result.time) * 1000 : undefined;
+
+        submission.memory = judge0Result.memory ?? undefined;
+
+        // submission error message
+        submission.errorMessage = 
+            judge0Result.stderr ??
+            judge0Result.compile_output ??
+            judge0Result.message ??
+            undefined;
+
+
+        await submission.save();
 
 
         console.log(
