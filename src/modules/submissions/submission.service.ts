@@ -3,6 +3,7 @@
 import { ApiError } from "../../common/errors/apiErrors.js";
 import { submissionQueue } from "../../queue/submission.queue.js";
 import { Problem } from "../problems/problem.model.js";
+import { User } from "../users/user.models.js";
 import { Submission } from "./submission.model.js";
 import type { CreateSubmissionInput } from "./submission.validation.js";
 
@@ -37,6 +38,26 @@ export const createSubmission = async (
             submissionId: submission._id.toString(),
         }
     )
+
+    return submission;
+};
+
+
+export const getSubmissionById = async (
+    submissionId: string,
+    userId: string,
+) => {
+    const submission = await Submission.findOne({
+        _id: submissionId,
+        user: userId,
+    });
+
+    if (!submission) {
+        throw new ApiError(
+            404,
+            "Submission not found",
+        );
+    }
 
     return submission;
 };

@@ -3,7 +3,7 @@ import { asyncHandler } from "../../common/utils/asyncHandler.js";
 import { ApiError } from "../../common/errors/apiErrors.js";
 import { Request, Response } from "express";
 import { createSubmissionSchema } from "./submission.validation.js";
-import { createSubmission } from "./submission.service.js";
+import { createSubmission, getSubmissionById } from "./submission.service.js";
 
 
 export const createSubmissionController = asyncHandler(
@@ -41,3 +41,36 @@ export const createSubmissionController = asyncHandler(
 
     }
 )
+
+export const getSubmissionController = asyncHandler(
+    async (req: Request, res: Response) => {
+        const userId = req.user?.userId;
+
+        if (!userId) {
+            throw new ApiError(401, "Authentication required");
+        }
+
+        const submissionId = req.params.submissionId;
+
+        if (
+            typeof submissionId !== "string" ||
+            submissionId.length === 0
+        ) {
+            throw new ApiError(
+                400,
+                "Submission ID is required",
+            );
+        }
+
+        const submission = await getSubmissionById(
+            submissionId,
+            userId,
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "Submission fetched successfully",
+            data: submission,
+        });
+    },
+);
