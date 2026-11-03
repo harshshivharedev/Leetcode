@@ -48,3 +48,29 @@ Service me business aur database logic hota hai:
 - Errors throw karna
 - Safe data return karna
 */
+
+
+export const markProblemAsSolved = async (
+  userId: string,
+  problemId: string,
+) => {
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    {
+      $addToSet: {
+        problemsSolved: problemId,
+      }
+    },
+    {
+      new : true,
+    }
+  ).select("-password -refreshTokenHash");
+
+  if(!updatedUser){
+    throw new ApiError(
+      404, 
+      "User not found"
+    );
+  }
+  return updatedUser;
+}

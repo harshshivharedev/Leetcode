@@ -7,7 +7,8 @@ const submissionRouter = Router();
 
 
 submissionRouter.post("/", authMiddleware, createSubmissionController );
-submissionRouter.get("/:submissionId", authMiddleware, getSubmissionController);
 submissionRouter.get("/me", authMiddleware, getMySubmissionsController)
+submissionRouter.get("/:submissionId", authMiddleware, getSubmissionController);
+
 
 export default submissionRouter;

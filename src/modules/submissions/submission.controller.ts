@@ -113,7 +113,7 @@ export const getMySubmissionsController = asyncHandler(
             success: true,
             message: "Submissions fetched successfully",
             data: result.submissions,
-            pegination: result.pagination,
+            pagination: result.pagination,
         })
     }
 )

@@ -9,6 +9,7 @@ import { ApiError } from "../common/errors/apiErrors.js";
 import { judge0LanguageIds } from "../common/constants/judge0.languages.js";
 import type { SubmissionStatus } from "../modules/submissions/submission.types.js";
 import { runSubmissionTestCase } from "../modules/submissions/submission.execution.service.js";
+import { markProblemAsSolved } from "../modules/users/user.service.js";
 
 
 await connectDatabase();
@@ -114,6 +115,14 @@ export const submissionWorker = new Worker<SubmissionJobData>(
 
         await submission.save();
 
+        // check problem accepted or not
+        if(submissionStatus === "accepted") {
+            await markProblemAsSolved(
+                submission.user.toString(),
+                submission.problem.toString(),
+            )
+        }
+
         console.log(
             `Submission ${submissionId} completed with status: ${submissionStatus}`,
         );
@@ -133,5 +142,8 @@ submissionWorker.on("failed", (job, error) => {
         error,
     );
 });
+
+
+
 
 
