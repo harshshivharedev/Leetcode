@@ -61,3 +61,37 @@ export const getSubmissionById = async (
 
     return submission;
 };
+
+
+export const getMySubmissions = async (
+    userId: string,
+    page: number,
+    limit: number
+) => {
+    const skip = (page-1) * limit;
+
+    const submissions = await Submission.find({
+        user: userId,
+    })
+    .sort({createdAt: -1})    // latest submissions first
+    .skip(skip)               // previous pages skip
+    .limit(limit);            // limited records in current page
+
+    const totalSubmissions = await Submission.countDocuments({
+        user: userId,
+    })
+
+    const totalPages = Math.ceil(
+        totalSubmissions/limit,
+    )
+
+    return {
+        submissions,
+        pagination: {
+            page,
+            limit,
+            totalSubmissions,
+            totalPages
+        }
+    }
+}
