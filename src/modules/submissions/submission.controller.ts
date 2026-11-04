@@ -4,6 +4,7 @@ import { ApiError } from "../../common/errors/apiErrors.js";
 import { Request, Response } from "express";
 import { createSubmissionSchema } from "./submission.validation.js";
 import { createSubmission, getMySubmissions, getSubmissionById } from "./submission.service.js";
+import { SubmissionStatus } from "./submission.types.js";
 
 
 export const createSubmissionController = asyncHandler(
@@ -86,6 +87,28 @@ export const getMySubmissionsController = asyncHandler(
 
         const pageParam = req.query.page;
         const limitParam = req.query.limit;
+        const statusParam = req.query.status;
+
+        const validStatuses = [
+            "pending",
+            "running",
+            "accepted",
+            "wrong_answer",
+            "runtime_error",
+            "time_limit_exceeded",
+        ] as const;
+
+        if(statusParam !== undefined && (
+            typeof statusParam !== "string" ||
+            !validStatuses.includes(
+                statusParam as (typeof validStatuses)[number],
+            )
+        )) {
+            throw new ApiError(
+                400,
+                "Invalid submission status",
+            )
+        }
 
         // default set if page and limit not given in url
         const page = Number(pageParam) || 1;
@@ -107,6 +130,7 @@ export const getMySubmissionsController = asyncHandler(
             userId,
             page,
             limit,
+            statusParam as SubmissionStatus | undefined
         )
 
         res.status(200).json({

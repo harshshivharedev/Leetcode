@@ -5,6 +5,7 @@ import { submissionQueue } from "../../queue/submission.queue.js";
 import { Problem } from "../problems/problem.model.js";
 import { User } from "../users/user.models.js";
 import { Submission } from "./submission.model.js";
+import { SubmissionStatus } from "./submission.types.js";
 import type { CreateSubmissionInput } from "./submission.validation.js";
 
 export const createSubmission = async (
@@ -66,20 +67,28 @@ export const getSubmissionById = async (
 export const getMySubmissions = async (
     userId: string,
     page: number,
-    limit: number
+    limit: number,
+    status?: SubmissionStatus
 ) => {
     const skip = (page-1) * limit;
 
-    const submissions = await Submission.find({
+    const filter: {
+        user: string;
+        status?: SubmissionStatus;
+    } = {
         user: userId,
-    })
+    }
+
+    if(status){
+        filter.status = status;
+    }
+
+    const submissions = await Submission.find(filter)
     .sort({createdAt: -1})    // latest submissions first
     .skip(skip)               // previous pages skip
     .limit(limit);            // limited records in current page
 
-    const totalSubmissions = await Submission.countDocuments({
-        user: userId,
-    })
+    const totalSubmissions = await Submission.countDocuments(filter);
 
     const totalPages = Math.ceil(
         totalSubmissions/limit,
