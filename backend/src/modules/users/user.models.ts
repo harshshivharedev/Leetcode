@@ -25,11 +25,11 @@ export type UserRole = "user" | "admin";
 */
 export interface IUser {
     firstName: string;
-    lastName: string;
+    lastName?: string;
     username: string;
     email: string;
     password: string;
-    age: number;
+    age?: number;
     role: UserRole;
     problemsSolved: Types.ObjectId[];
     refreshTokenHash?: string | null;
@@ -49,7 +49,6 @@ const userSchema = new Schema<IUser>(
 
         lastName: {
             type: String,
-            required: [true,"Last name is required"],
             trim: true,
             minlength: 3,
             maxlength: 20,
@@ -80,7 +79,6 @@ const userSchema = new Schema<IUser>(
 
         age: {
             type: Number,
-            required: [true, "Age is required"],
             min: 6, 
             max: 80,
         },

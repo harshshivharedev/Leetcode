@@ -11,7 +11,8 @@ export const registerSchema = z.object({
     .string()
     .trim()
     .min(3, "Last name must be at least 3 characters")
-    .max(20, "Last name must not exceed 20 characters"),
+    .max(20, "Last name must not exceed 20 characters")
+    .optional(),
 
   username: z
     .string()
@@ -33,7 +34,8 @@ export const registerSchema = z.object({
     .number()
     .int("Age must be an integer")
     .min(6, "Minimum age is 6")
-    .max(80, "Maximum age is 80"),
+    .max(80, "Maximum age is 80")
+    .optional(),
 });
 
 export const loginSchema = z.object({

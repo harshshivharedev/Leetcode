@@ -4,11 +4,11 @@
 
 export interface RegisterInput {
   firstName: string;
-  lastName: string;
+    lastName?: string;
   username: string;
   email: string;
   password: string;
-  age: number;
+    age?: number;
 }
 
 export interface LoginInput {
