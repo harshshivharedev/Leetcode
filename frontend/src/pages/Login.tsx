@@ -3,6 +3,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { loginUser } from "../services/auth.service";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "../store/store";
+import { login as loginAction } from "../store/slices/authSlice";
 
 const loginSchema = z.object({
   emailOrUsername: z
@@ -21,6 +24,8 @@ interface LoginFormData {
 }
 
 function Login() {
+  const dispatch = useDispatch<AppDispatch>();
+
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] =
     useState<"success" | "error">("success");
@@ -47,7 +52,14 @@ function Login() {
             password: data.password,
           };
 
-      await loginUser(loginData);
+      const result = await loginUser(loginData);
+
+      dispatch(
+        loginAction({
+          user: result.data.user,
+          accessToken: result.data.accessToken,
+        }),
+      );
 
       setMessageType("success");
       setMessage("Login successful");
