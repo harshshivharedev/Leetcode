@@ -6,6 +6,7 @@ import { loginUser } from "../services/auth.service";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../store/store";
 import { login as loginAction } from "../store/slices/authSlice";
+import { useNavigate } from "react-router";
 
 const loginSchema = z.object({
   emailOrUsername: z
@@ -25,6 +26,7 @@ interface LoginFormData {
 
 function Login() {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
 
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] =
@@ -61,6 +63,8 @@ function Login() {
         }),
       );
 
+      navigate("/");
+
       setMessageType("success");
       setMessage("Login successful");
     } catch (error) {
@@ -76,7 +80,7 @@ function Login() {
     <main className="flex min-h-screen items-center justify-center bg-[#f7f7f8] px-4 py-10">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-[460px] rounded-xl border border-gray-200 bg-white p-8 shadow-sm"
+        className="w-full max-w-115 rounded-xl border border-gray-200 bg-white p-8 shadow-sm"
       >
         <div className="mb-8 text-center">
           <div className="mb-4 text-3xl font-bold text-[#ffa116]">
