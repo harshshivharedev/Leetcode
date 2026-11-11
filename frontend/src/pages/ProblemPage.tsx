@@ -1,35 +1,41 @@
-
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { useParams } from "react-router";
 import Navbar from "../components/layout/Navbar";
 import {
-  getPublishedProblems,
+  getProblemBySlug,
   type Problem,
 } from "../services/problem.service";
 
-function ProblemsPage() {
-  const [problems, setProblems] = useState<Problem[]>([]);
+function ProblemPage() {
+  const { slug } = useParams<{ slug: string }>();
+  const [problem, setProblem] = useState<Problem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const loadProblems = async () => {
+    const loadProblem = async () => {
+      if (!slug) {
+        setError("Problem slug is missing");
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        const data = await getPublishedProblems();
-        setProblems(data);
+        const data = await getProblemBySlug(slug);
+        setProblem(data);
       } catch (error) {
         setError(
           error instanceof Error
             ? error.message
-            : "Failed to load problems",
+            : "Failed to load problem",
         );
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadProblems();
-  }, []);
+    loadProblem();
+  }, [slug]);
 
   if (isLoading) {
     return (
@@ -42,13 +48,13 @@ function ProblemsPage() {
     );
   }
 
-  if (error) {
+  if (error || !problem) {
     return (
       <>
         <Navbar />
         <main className="flex min-h-screen items-center justify-center bg-[#f7f7f8] px-4">
           <div className="alert alert-error max-w-md">
-            <span>{error}</span>
+            <span>{error || "Problem not found"}</span>
           </div>
         </main>
       </>
@@ -59,80 +65,73 @@ function ProblemsPage() {
     <div className="min-h-screen bg-[#f7f7f8]">
       <Navbar />
 
-      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-10">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-[#d97706]">
-            Practice
-          </p>
+      <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+            <h1 className="text-3xl font-bold text-gray-900">
+              {problem.title}
+            </h1>
 
-          <h1 className="text-4xl font-bold text-gray-900">
-            Coding Problems
-          </h1>
-
-          <p className="mt-3 text-gray-600">
-            Sharpen your problem-solving skills with curated challenges.
-          </p>
-        </div>
-
-        {problems.length === 0 ? (
-          <div className="rounded-xl border border-gray-200 bg-white p-10 text-center">
-            <h2 className="text-xl font-semibold text-gray-900">
-              No problems available
-            </h2>
-
-            <p className="mt-2 text-gray-600">
-              Published problems will appear here.
-            </p>
+            <span className="rounded-full bg-orange-100 px-3 py-1 text-sm font-semibold capitalize text-orange-700">
+              {problem.difficulty}
+            </span>
           </div>
-        ) : (
-          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-            {problems.map((problem, index) => (
-              <Link
-                key={problem._id}
-                to={`/problems/${problem.slug}`}
-                className="flex flex-col gap-4 border-b border-gray-100 p-5 transition last:border-b-0 hover:bg-orange-50 sm:flex-row sm:items-center sm:justify-between"
+
+          <div className="mb-8 flex flex-wrap gap-2">
+            {problem.tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600"
               >
-                <div className="flex items-start gap-4">
-                  <span className="w-7 pt-1 text-sm text-gray-400">
-                    {index + 1}
-                  </span>
-
-                  <div>
-                    <h2 className="font-semibold text-gray-900">
-                      {problem.title}
-                    </h2>
-
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {problem.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-600"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <span
-                  className={`text-sm font-semibold capitalize ${
-                    problem.difficulty === "easy"
-                      ? "text-green-600"
-                      : problem.difficulty === "medium"
-                        ? "text-yellow-600"
-                        : "text-red-600"
-                  }`}
-                >
-                  {problem.difficulty}
-                </span>
-              </Link>
+                {tag}
+              </span>
             ))}
           </div>
-        )}
+
+          <h2 className="mb-3 text-xl font-semibold text-gray-900">
+            Description
+          </h2>
+
+          <p className="whitespace-pre-line leading-8 text-gray-700">
+            {problem.description}
+          </p>
+
+          {problem.visibleTestCases && problem.visibleTestCases.length > 0 && (
+            <section className="mt-10">
+              <h2 className="mb-4 text-xl font-semibold text-gray-900">
+                Examples
+              </h2>
+
+              <div className="space-y-4">
+                {problem.visibleTestCases.map((testCase, index) => (
+                  <div
+                    key={index}
+                    className="rounded-lg bg-gray-50 p-4"
+                  >
+                    <p className="font-semibold text-gray-800">
+                      Example {index + 1}
+                    </p>
+
+                    <p className="mt-2 text-sm text-gray-600">
+                      <strong>Input:</strong> {testCase.input}
+                    </p>
+
+                    <p className="mt-1 text-sm text-gray-600">
+                      <strong>Output:</strong> {testCase.output}
+                    </p>
+
+                    <p className="mt-1 text-sm text-gray-600">
+                      <strong>Explanation:</strong> {testCase.explanation}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
       </main>
     </div>
   );
 }
 
-export default ProblemsPage;
+export default ProblemPage;

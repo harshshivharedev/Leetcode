@@ -13,6 +13,11 @@ export interface Problem {
     language: string;
     initialCode: string;
   }[];
+  visibleTestCases?: {
+    input: string;
+    output: string;
+    explanation: string;
+  }[];
   problemCreator: string;
   isPublished: boolean;
   createdAt: string;
@@ -39,3 +44,25 @@ export const getPublishedProblems = async () => {
 
     return result.data;
 }
+
+interface ProblemResponse {
+  success: boolean;
+  message: string;
+  data: Problem;
+}
+
+export const getProblemBySlug = async (
+  slug: string,
+): Promise<Problem> => {
+  const response = await fetch(
+    `${API_BASE_URL}/problems/${slug}`,
+  );
+
+  const result: ProblemResponse = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to fetch problem");
+  }
+
+  return result.data;
+};
