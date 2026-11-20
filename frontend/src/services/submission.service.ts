@@ -1,5 +1,5 @@
 export interface CreateSubmissionPayload {
-  problem: string;
+  problemId: string;
   code: string;
   language: string;
 }
@@ -25,11 +25,15 @@ export interface SubmissionResult {
   updatedAt: string;
 }
 
-export const createSubmission = async (data: CreateSubmissionPayload) => {
+export const createSubmission = async (
+  data: CreateSubmissionPayload,
+  accessToken: string,
+) => {
   const response = await fetch("http://localhost:5000/api/v1/submissions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
     },
     credentials: "include",
     body: JSON.stringify(data),
@@ -48,12 +52,16 @@ export const createSubmission = async (data: CreateSubmissionPayload) => {
 
 export const getSubmissionById = async (
   submissionId: string,
+  accessToken: string,
 ): Promise<SubmissionResult> => {
   const response = await fetch(
     `http://localhost:5000/api/v1/submissions/${submissionId}`,
     {
       method: "GET",
       credentials: "include",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     },
   );
 

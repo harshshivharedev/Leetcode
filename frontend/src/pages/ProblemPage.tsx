@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
+import { useSelector } from "react-redux";
 import Navbar from "../components/layout/Navbar";
+import type { RootState } from "../store/store";
 import CodeEditor from "../components/editor/CodeEditor";
 import {
   createSubmission,
@@ -26,6 +28,9 @@ function ProblemPage() {
   const [submissionStatus, setSubmissionStatus] = useState<string | null>(null);
   const [submissionResult, setSubmissionResult] =
     useState<SubmissionResult | null>(null);
+  const accessToken = useSelector(
+    (state: RootState) => state.auth.accessToken,
+  );
 
   useEffect(() => {
     if (!submissionId) {
@@ -43,8 +48,16 @@ function ProblemPage() {
     let isPollingActive = true;
 
     const checkSubmissionStatus = async () => {
+      if (!accessToken) {
+        setSubmissionMessage("Please login before checking submission status.");
+        return;
+      }
+
       try {
-        const submission = await getSubmissionById(submissionId);
+        const submission = await getSubmissionById(
+          submissionId,
+          accessToken,
+        );
 
         setSubmissionResult(submission);
         setSubmissionStatus(submission.status);
@@ -76,7 +89,7 @@ function ProblemPage() {
       isPollingActive = false;
       window.clearInterval(pollingInterval);
     };
-  }, [submissionId]);
+  }, [submissionId, accessToken]);
 
   useEffect(() => {
     const loadProblem = async () => {
@@ -151,15 +164,20 @@ function ProblemPage() {
       return;
     }
 
+    if (!accessToken) {
+      setSubmissionMessage("Please login before submitting your solution.");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setSubmissionMessage("");
 
       const result = await createSubmission({
-        problem: problem._id,
+        problemId: problem._id,
         code,
         language: selectedLanguage,
-      });
+      }, accessToken);
 
       setSubmissionId(result.data._id);
       setSubmissionStatus(result.data.status);
