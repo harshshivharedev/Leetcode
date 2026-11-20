@@ -8,6 +8,7 @@ import ProblemsPage from "../pages/ProblemsPage";
 import ProblemPage from "../pages/ProblemPage";
 import SubmissionsPage from "../pages/SubmissionsPage";
 import SubmissionDetailPage from "../pages/SubmissionDetailPage";
+import ProfilePage from "../pages/ProfilePage";
 import { refreshAccessToken, getCurrentUser } from "../services/auth.service";
 import { login as loginAction } from "../store/slices/authSlice";
 import type { AppDispatch } from "../store/store";
@@ -58,6 +59,7 @@ function App() {
             <Route element={<ProtectedRoute />}>
                 <Route path="/submissions" element={<SubmissionsPage />} />
                 <Route path="/submissions/:submissionId" element={<SubmissionDetailPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
             </Route>
 
           </Routes>

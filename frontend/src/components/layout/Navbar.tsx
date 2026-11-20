@@ -42,6 +42,9 @@ function Navbar() {
             <span className="hidden text-sm text-gray-600 sm:inline">
               Hi, <span className="font-semibold text-gray-900">{user.username}</span>
             </span>
+            <Link className="text-sm font-medium text-gray-600 hover:text-[#ffa116]" to="/profile">
+              Profile
+            </Link>
             <button className="btn btn-sm btn-outline" type="button" onClick={handleLogout}>
               Logout
             </button>
