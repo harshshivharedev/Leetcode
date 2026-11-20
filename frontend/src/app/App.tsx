@@ -11,6 +11,7 @@ import SubmissionDetailPage from "../pages/SubmissionDetailPage";
 import { refreshAccessToken, getCurrentUser } from "../services/auth.service";
 import { login as loginAction } from "../store/slices/authSlice";
 import type { AppDispatch } from "../store/store";
+import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 function App() {
     const dispatch = useDispatch<AppDispatch>();
@@ -54,8 +55,10 @@ function App() {
             <Route path="/signup" element={<Signup></Signup>}></Route>
             <Route path="/problems" element={<ProblemsPage />} />
             <Route path="/problems/:slug" element={<ProblemPage />} />
-            <Route path="/submissions" element={<SubmissionsPage />} />
-            <Route path="/submissions/:submissionId" element={<SubmissionDetailPage />} />
+            <Route element={<ProtectedRoute />}>
+                <Route path="/submissions" element={<SubmissionsPage />} />
+                <Route path="/submissions/:submissionId" element={<SubmissionDetailPage />} />
+            </Route>
 
           </Routes>
         </>
