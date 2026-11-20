@@ -96,3 +96,33 @@ export const getCurrentUser = async (accessToken: string) => {
 
     return result.data;
 };
+
+export interface UpdateProfilePayload {
+    firstName?: string;
+    lastName?: string;
+    username?: string;
+    age?: number;
+}
+
+export const updateProfile = async (
+    data: UpdateProfilePayload,
+    accessToken: string,
+) => {
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+        },
+        credentials: "include",
+        body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.message || "Failed to update profile");
+    }
+
+    return result.data;
+};

@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Navbar from "../components/layout/Navbar";
-import { getCurrentUser } from "../services/auth.service";
-import type { RootState } from "../store/store";
+import {
+  getCurrentUser,
+  updateProfile,
+  type UpdateProfilePayload,
+} from "../services/auth.service";
+import { updateUser } from "../store/slices/authSlice";
+import type { AppDispatch, RootState } from "../store/store";
 
 interface ProfileUser {
   _id: string;
@@ -11,6 +16,7 @@ interface ProfileUser {
   lastName?: string;
   username: string;
   email: string;
+  age?: number;
   role: "user" | "admin";
   problemsSolved?: string[];
   createdAt: string;
@@ -20,9 +26,14 @@ function ProfilePage() {
   const accessToken = useSelector(
     (state: RootState) => state.auth.accessToken,
   );
+  const dispatch = useDispatch<AppDispatch>();
   const [user, setUser] = useState<ProfileUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [formData, setFormData] = useState<UpdateProfilePayload>({});
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -35,6 +46,12 @@ function ProfilePage() {
       try {
         const data = await getCurrentUser(accessToken);
         setUser(data);
+        setFormData({
+          firstName: data.firstName,
+          lastName: data.lastName ?? "",
+          username: data.username,
+          age: data.age,
+        });
       } catch (requestError) {
         setError(
           requestError instanceof Error
@@ -48,6 +65,36 @@ function ProfilePage() {
 
     loadProfile();
   }, [accessToken]);
+
+  const handleInputChange = (field: keyof UpdateProfilePayload, value: string) => {
+    setFormData((current) => ({
+      ...current,
+      [field]: field === "age" ? (value ? Number(value) : undefined) : value,
+    }));
+  };
+
+  const handleProfileUpdate = async () => {
+    if (!accessToken) return;
+
+    try {
+      setIsSaving(true);
+      setMessage("");
+
+      const updatedUser = await updateProfile(formData, accessToken);
+      setUser(updatedUser);
+      dispatch(updateUser(updatedUser));
+      setIsEditing(false);
+      setMessage("Profile updated successfully");
+    } catch (updateError) {
+      setMessage(
+        updateError instanceof Error
+          ? updateError.message
+          : "Failed to update profile",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#f7f7f8]">
@@ -92,7 +139,50 @@ function ProfilePage() {
                   {user.role}
                 </span>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setIsEditing((current) => !current)}
+                className="btn btn-sm mt-6 border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+              >
+                {isEditing ? "Cancel" : "Edit profile"}
+              </button>
             </section>
+
+            {isEditing && (
+              <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Edit profile
+                </h2>
+
+                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                  {(["firstName", "lastName", "username", "age"] as const).map((field) => (
+                    <label key={field} className="text-sm font-medium capitalize text-gray-700">
+                      {field}
+                      <input
+                        value={formData[field] ?? ""}
+                        onChange={(event) => handleInputChange(field, event.target.value)}
+                        type={field === "age" ? "number" : "text"}
+                        className="input input-bordered mt-2 w-full border-gray-300 bg-white text-gray-800"
+                      />
+                    </label>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleProfileUpdate}
+                  disabled={isSaving}
+                  className="btn mt-5 border-0 bg-[#ffa116] text-white hover:bg-[#e89000]"
+                >
+                  {isSaving ? "Saving..." : "Save changes"}
+                </button>
+              </section>
+            )}
+
+            {message && (
+              <p className="text-sm font-medium text-green-600">{message}</p>
+            )}
 
             <section className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
