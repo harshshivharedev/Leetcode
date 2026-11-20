@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import Navbar from "../components/layout/Navbar";
 import CodeEditor from "../components/editor/CodeEditor";
-import { createSubmission } from "../services/submission.service";
+import {
+  createSubmission,
+  getSubmissionById,
+  type SubmissionResult,
+} from "../services/submission.service";
 import {
   getProblemBySlug,
   type Problem,
@@ -18,6 +22,61 @@ function ProblemPage() {
   const [activeLeftTab, setActiveLeftTab] = useState("Description");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionMessage, setSubmissionMessage] = useState("");
+  const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [submissionStatus, setSubmissionStatus] = useState<string | null>(null);
+  const [submissionResult, setSubmissionResult] =
+    useState<SubmissionResult | null>(null);
+
+  useEffect(() => {
+    if (!submissionId) {
+      return;
+    }
+
+    const finalStatuses = [
+      "accepted",
+      "wrong_answer",
+      "runtime_error",
+      "time_limit_exceeded",
+      "compilation_error",
+    ];
+
+    let isPollingActive = true;
+
+    const checkSubmissionStatus = async () => {
+      try {
+        const submission = await getSubmissionById(submissionId);
+
+        setSubmissionResult(submission);
+        setSubmissionStatus(submission.status);
+
+        if (finalStatuses.includes(submission.status)) {
+          isPollingActive = false;
+          window.clearInterval(pollingInterval);
+        }
+      } catch (pollingError) {
+        isPollingActive = false;
+        window.clearInterval(pollingInterval);
+        setSubmissionMessage(
+          pollingError instanceof Error
+            ? pollingError.message
+            : "Failed to fetch submission status",
+        );
+      }
+    };
+
+    const pollingInterval = window.setInterval(() => {
+      if (isPollingActive) {
+        checkSubmissionStatus();
+      }
+    }, 2000);
+
+    checkSubmissionStatus();
+
+    return () => {
+      isPollingActive = false;
+      window.clearInterval(pollingInterval);
+    };
+  }, [submissionId]);
 
   useEffect(() => {
     const loadProblem = async () => {
@@ -102,8 +161,11 @@ function ProblemPage() {
         language: selectedLanguage,
       });
 
+      setSubmissionId(result.data._id);
+      setSubmissionStatus(result.data.status);
+
       setSubmissionMessage(
-        result.message || "Submission queued successfully.",
+        result.message || `Submission queued: ${result.data._id}`,
       );
     } catch (submissionError) {
       setSubmissionMessage(
@@ -270,9 +332,37 @@ function ProblemPage() {
                 <span className="text-green-400">›_</span>
                 Test Result
               </div>
-              <p className="mt-2 text-xs text-gray-500">
-                {submissionMessage || "Run or submit your code to see the result here."}
-              </p>
+
+              {!submissionResult ? (
+                <p className="mt-2 text-xs text-gray-500">
+                  {submissionMessage || "Run or submit your code to see the result here."}
+                </p>
+              ) : (
+                <div className="mt-3 space-y-2 text-sm">
+                  <p
+                    className={`font-semibold capitalize ${
+                      submissionStatus === "accepted"
+                        ? "text-green-400"
+                        : submissionStatus === "running" || submissionStatus === "pending"
+                          ? "text-yellow-400"
+                          : "text-red-400"
+                    }`}
+                  >
+                    {submissionResult.status.replaceAll("_", " ")}
+                  </p>
+
+                  <div className="flex gap-6 text-xs text-gray-400">
+                    <span>Runtime: {submissionResult.runtime ?? "-"} ms</span>
+                    <span>Memory: {submissionResult.memory ?? "-"} KB</span>
+                  </div>
+
+                  {submissionResult.errorMessage && (
+                    <p className="text-xs text-red-300">
+                      {submissionResult.errorMessage}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div
