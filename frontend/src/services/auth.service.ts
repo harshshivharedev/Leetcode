@@ -63,3 +63,36 @@ export const logoutUser = async () => {
 
     return result;
 };
+
+export const refreshAccessToken = async (): Promise<string> => {
+    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: "POST",
+        credentials: "include",
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.message || "Session expired");
+    }
+
+    return result.data.accessToken;
+};
+
+export const getCurrentUser = async (accessToken: string) => {
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+        credentials: "include",
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.message || "Failed to fetch current user");
+    }
+
+    return result.data;
+};
