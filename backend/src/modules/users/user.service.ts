@@ -1,6 +1,7 @@
 
 import { ApiError } from "../../common/errors/apiErrors.js";
 import { User } from "./user.models.js";
+import type { UpdateProfileInput } from "./user.validation.js";
 
 export const getCurrentUser = async (userId: string) => {
   const user = await User.findById(userId).select("-password");
@@ -36,6 +37,34 @@ export const getCurrentUser = async (userId: string) => {
     createdAt,
     updatedAt,
   };
+};
+
+export const updateProfile = async (
+  userId: string,
+  profileData: UpdateProfileInput,
+) => {
+  if (profileData.username) {
+    const existingUser = await User.findOne({
+      username: profileData.username,
+      _id: { $ne: userId },
+    });
+
+    if (existingUser) {
+      throw new ApiError(409, "Username is already taken");
+    }
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { $set: profileData },
+    { new: true, runValidators: true },
+  ).select("-password -refreshTokenHash");
+
+  if (!updatedUser) {
+    throw new ApiError(404, "User not found");
+  }
+
+  return updatedUser;
 };
 
 /*
