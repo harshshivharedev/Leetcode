@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import Navbar from "../components/layout/Navbar";
 import CodeEditor from "../components/editor/CodeEditor";
+import { createSubmission } from "../services/submission.service";
 import {
   getProblemBySlug,
   type Problem,
@@ -15,6 +16,8 @@ function ProblemPage() {
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const [code, setCode] = useState("");
   const [activeLeftTab, setActiveLeftTab] = useState("Description");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionMessage, setSubmissionMessage] = useState("");
 
   useEffect(() => {
     const loadProblem = async () => {
@@ -83,6 +86,36 @@ function ProblemPage() {
     setCode(starter?.initialCode || "// Write your solution here\n");
   };
 
+  const handleSubmitSolution = async () => {
+    if (!problem || !code.trim()) {
+      setSubmissionMessage("Please write some code before submitting.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setSubmissionMessage("");
+
+      const result = await createSubmission({
+        problem: problem._id,
+        code,
+        language: selectedLanguage,
+      });
+
+      setSubmissionMessage(
+        result.message || "Submission queued successfully.",
+      );
+    } catch (submissionError) {
+      setSubmissionMessage(
+        submissionError instanceof Error
+          ? submissionError.message
+          : "Submission failed",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f7f7f8]">
       <Navbar />
@@ -102,8 +135,13 @@ function ProblemPage() {
             <button className="btn btn-sm border-0 bg-[#3a3a3a] text-gray-200 hover:bg-[#4a4a4a]" type="button">
               Run
             </button>
-            <button className="btn btn-sm border-0 bg-[#2ea44f] text-white hover:bg-[#24863f]" type="button">
-              Submit
+            <button
+              className="btn btn-sm border-0 bg-[#2ea44f] text-white hover:bg-[#24863f]"
+              type="button"
+              onClick={handleSubmitSolution}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Submitting..." : "Submit"}
             </button>
           </div>
         </div>
@@ -233,7 +271,7 @@ function ProblemPage() {
                 Test Result
               </div>
               <p className="mt-2 text-xs text-gray-500">
-                Run or submit your code to see the result here.
+                {submissionMessage || "Run or submit your code to see the result here."}
               </p>
             </div>
 
@@ -247,8 +285,10 @@ function ProblemPage() {
               <button
                 type="button"
                 className="btn btn-sm border-0 bg-[#ffa116] px-5 text-white hover:bg-[#e89000]"
+                onClick={handleSubmitSolution}
+                disabled={isSubmitting}
               >
-                Submit solution
+                {isSubmitting ? "Submitting..." : "Submit solution"}
               </button>
             </div>
           </section>
