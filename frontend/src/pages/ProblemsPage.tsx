@@ -10,6 +10,8 @@ function ProblemsPage() {
   const [problems, setProblems] = useState<Problem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDifficulty, setSelectedDifficulty] = useState("all");
 
   useEffect(() => {
     const loadProblems = async () => {
@@ -29,6 +31,18 @@ function ProblemsPage() {
 
     loadProblems();
   }, []);
+
+  const filteredProblems = problems.filter((problem) => {
+    const matchesSearch = problem.title
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+
+    const matchesDifficulty =
+      selectedDifficulty === "all" ||
+      problem.difficulty === selectedDifficulty;
+
+    return matchesSearch && matchesDifficulty;
+  });
 
   if (isLoading) {
     return (
@@ -67,13 +81,34 @@ function ProblemsPage() {
           Sharpen your problem-solving skills with curated challenges.
         </p>
 
-        {problems.length === 0 ? (
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <input
+            type="search"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder="Search problems..."
+            className="input input-bordered w-full border-gray-300 bg-white text-gray-800 placeholder:text-gray-400 sm:max-w-md"
+          />
+
+          <select
+            value={selectedDifficulty}
+            onChange={(event) => setSelectedDifficulty(event.target.value)}
+            className="select select-bordered w-full border-gray-300 bg-white text-gray-800 sm:w-48"
+          >
+            <option value="all">All difficulties</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+
+        {filteredProblems.length === 0 ? (
           <div className="mt-10 rounded-xl border border-gray-200 bg-white p-10 text-center">
-            No published problems available.
+            No matching problems found.
           </div>
         ) : (
           <div className="mt-10 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-            {problems.map((problem, index) => (
+            {filteredProblems.map((problem, index) => (
               <Link
                 key={problem._id}
                 to={`/problems/${problem.slug}`}
