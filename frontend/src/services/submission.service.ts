@@ -21,8 +21,21 @@ export interface SubmissionResult {
   runtime?: number;
   memory?: number;
   errorMessage?: string;
+  failedTestCaseNumber?: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface RunCodeResult {
+  testCaseNumber: number;
+  status: string;
+  passed: boolean;
+  input: string;
+  expectedOutput: string;
+  actualOutput: string | null;
+  error: string | null;
+  runtime: number | null;
+  memory: number | null;
 }
 
 export const createSubmission = async (
@@ -69,6 +82,32 @@ export const getSubmissionById = async (
 
   if (!response.ok) {
     throw new Error(result.message || "Failed to fetch submission");
+  }
+
+  return result.data;
+};
+
+export const runCode = async (
+  data: CreateSubmissionPayload,
+  accessToken: string,
+): Promise<RunCodeResult[]> => {
+  const response = await fetch(
+    "http://localhost:5000/api/v1/submissions/run",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      credentials: "include",
+      body: JSON.stringify(data),
+    },
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Code execution failed");
   }
 
   return result.data;

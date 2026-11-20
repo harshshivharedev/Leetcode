@@ -51,6 +51,7 @@ export const submissionWorker = new Worker<SubmissionJobData>(
         }
 
         let finalJudge0Result;
+        let failedTestCaseNumber: number | undefined;
 
         for (const [index, testCase] of problem.hiddenTestCases.entries()) {
             const judge0Result = await runSubmissionTestCase(
@@ -67,6 +68,7 @@ export const submissionWorker = new Worker<SubmissionJobData>(
             );
 
             if (judge0Result.status.id !== 3) {
+                failedTestCaseNumber = index + 1;
                 console.log(
                     `Submission failed on test case ${index + 1}`,
                 );
@@ -104,6 +106,7 @@ export const submissionWorker = new Worker<SubmissionJobData>(
             : undefined;
 
         submission.memory = finalJudge0Result.memory ?? undefined;
+        submission.failedTestCaseNumber = failedTestCaseNumber;
 
         // submission error message
         submission.errorMessage = 

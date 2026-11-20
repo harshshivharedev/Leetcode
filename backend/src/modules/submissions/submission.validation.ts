@@ -20,6 +20,8 @@ export const createSubmissionSchema = z.object({
     ]),
 });
 
+export const runCodeSchema = createSubmissionSchema;
+
 export type CreateSubmissionInput = z.infer<
     typeof createSubmissionSchema
 >;

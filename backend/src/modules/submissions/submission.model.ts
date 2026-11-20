@@ -53,6 +53,11 @@ const submissionSchema = new Schema<ISubmission>(
             type: String,
             trim: true,
         },
+
+        failedTestCaseNumber: {
+            type: Number,
+            min: 1,
+        },
     },
     {
         timestamps: true,

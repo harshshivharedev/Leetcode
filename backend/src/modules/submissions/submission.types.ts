@@ -25,6 +25,7 @@ export interface ISubmission {
     runtime?: number;
     memory?: number;
     errorMessage?: string;
+    failedTestCaseNumber?: number;
     createdAt: Date;
     updatedAt: Date;
 }

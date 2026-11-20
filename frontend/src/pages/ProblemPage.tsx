@@ -7,6 +7,8 @@ import CodeEditor from "../components/editor/CodeEditor";
 import {
   createSubmission,
   getSubmissionById,
+  runCode,
+  type RunCodeResult,
   type SubmissionResult,
 } from "../services/submission.service";
 import {
@@ -28,6 +30,8 @@ function ProblemPage() {
   const [submissionStatus, setSubmissionStatus] = useState<string | null>(null);
   const [submissionResult, setSubmissionResult] =
     useState<SubmissionResult | null>(null);
+  const [runResults, setRunResults] = useState<RunCodeResult[]>([]);
+  const [isRunning, setIsRunning] = useState(false);
   const accessToken = useSelector(
     (state: RootState) => state.auth.accessToken,
   );
@@ -196,6 +200,43 @@ function ProblemPage() {
     }
   };
 
+  const handleRunCode = async () => {
+    if (!problem || !code.trim()) {
+      setSubmissionMessage("Please write some code before running.");
+      return;
+    }
+
+    if (!accessToken) {
+      setSubmissionMessage("Please login before running your code.");
+      return;
+    }
+
+    try {
+      setIsRunning(true);
+      setSubmissionMessage("");
+      setRunResults([]);
+
+      const results = await runCode(
+        {
+          problemId: problem._id,
+          code,
+          language: selectedLanguage,
+        },
+        accessToken,
+      );
+
+      setRunResults(results);
+    } catch (runError) {
+      setSubmissionMessage(
+        runError instanceof Error
+          ? runError.message
+          : "Code execution failed",
+      );
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f7f7f8]">
       <Navbar />
@@ -212,8 +253,13 @@ function ProblemPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="btn btn-sm border-0 bg-[#3a3a3a] text-gray-200 hover:bg-[#4a4a4a]" type="button">
-              Run
+            <button
+              className="btn btn-sm border-0 bg-[#3a3a3a] text-gray-200 hover:bg-[#4a4a4a]"
+              type="button"
+              onClick={handleRunCode}
+              disabled={isRunning}
+            >
+              {isRunning ? "Running..." : "Run"}
             </button>
             <button
               className="btn btn-sm border-0 bg-[#2ea44f] text-white hover:bg-[#24863f]"
@@ -299,6 +345,32 @@ function ProblemPage() {
                   {activeLeftTab} content will be available soon.
                 </div>
               )}
+
+              {runResults.length > 0 && (
+                <div className="mt-4 space-y-3">
+                  {runResults.map((result) => (
+                    <div
+                      key={result.testCaseNumber}
+                      className="rounded-md border border-gray-700 p-3 text-xs"
+                    >
+                      <p
+                        className={
+                          result.passed ? "text-green-400" : "text-red-400"
+                        }
+                      >
+                        Test case #{result.testCaseNumber}: {result.passed ? "Passed" : result.status}
+                      </p>
+                      <p className="mt-1 text-gray-400">Input: {result.input}</p>
+                      <p className="text-gray-400">
+                        Expected: {result.expectedOutput}
+                      </p>
+                      <p className="text-gray-400">
+                        Output: {result.actualOutput ?? result.error ?? "No output"}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
 
@@ -373,6 +445,12 @@ function ProblemPage() {
                     <span>Runtime: {submissionResult.runtime ?? "-"} ms</span>
                     <span>Memory: {submissionResult.memory ?? "-"} KB</span>
                   </div>
+
+                  {submissionResult.failedTestCaseNumber && (
+                    <p className="text-xs text-orange-300">
+                      Failed on test case #{submissionResult.failedTestCaseNumber}
+                    </p>
+                  )}
 
                   {submissionResult.errorMessage && (
                     <p className="text-xs text-red-300">
