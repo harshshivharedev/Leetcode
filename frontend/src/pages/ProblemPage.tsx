@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import Navbar from "../components/layout/Navbar";
+import CodeEditor from "../components/editor/CodeEditor";
 import {
   getProblemBySlug,
   type Problem,
@@ -11,6 +12,9 @@ function ProblemPage() {
   const [problem, setProblem] = useState<Problem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("javascript");
+  const [code, setCode] = useState("");
+  const [activeLeftTab, setActiveLeftTab] = useState("Description");
 
   useEffect(() => {
     const loadProblem = async () => {
@@ -23,10 +27,19 @@ function ProblemPage() {
       try {
         const data = await getProblemBySlug(slug);
         setProblem(data);
-      } catch (error) {
+
+        const firstStarterCode = data.starterCode?.[0];
+
+        if (firstStarterCode) {
+          setSelectedLanguage(firstStarterCode.language);
+          setCode(firstStarterCode.initialCode || "// Write your solution here\n");
+        } else {
+          setCode("// Write your solution here\n");
+        }
+      } catch (requestError) {
         setError(
-          error instanceof Error
-            ? error.message
+          requestError instanceof Error
+            ? requestError.message
             : "Failed to load problem",
         );
       } finally {
@@ -61,73 +74,184 @@ function ProblemPage() {
     );
   }
 
+  const handleLanguageChange = (language: string) => {
+    const starter = problem.starterCode?.find(
+      (item) => item.language === language,
+    );
+
+    setSelectedLanguage(language);
+    setCode(starter?.initialCode || "// Write your solution here\n");
+  };
+
   return (
     <div className="min-h-screen bg-[#f7f7f8]">
       <Navbar />
 
-      <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-            <h1 className="text-3xl font-bold text-gray-900">
-              {problem.title}
-            </h1>
-
-            <span className="rounded-full bg-orange-100 px-3 py-1 text-sm font-semibold capitalize text-orange-700">
-              {problem.difficulty}
-            </span>
+      <main className="mx-auto max-w-[1600px] px-3 py-3 sm:px-5 lg:px-6">
+        <div className="mb-3 flex items-center justify-between rounded-lg bg-[#282828] px-4 py-2.5 text-gray-200 shadow-sm">
+          <div className="flex items-center gap-4">
+            <button className="text-xl text-gray-400 hover:text-white" type="button">
+              ‹
+            </button>
+            <span className="hidden text-sm font-semibold sm:inline">Problem List</span>
+            <span className="text-gray-500">/</span>
+            <span className="text-sm text-gray-300">{problem.title}</span>
           </div>
 
-          <div className="mb-8 flex flex-wrap gap-2">
-            {problem.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600"
-              >
-                {tag}
-              </span>
-            ))}
+          <div className="flex items-center gap-2">
+            <button className="btn btn-sm border-0 bg-[#3a3a3a] text-gray-200 hover:bg-[#4a4a4a]" type="button">
+              Run
+            </button>
+            <button className="btn btn-sm border-0 bg-[#2ea44f] text-white hover:bg-[#24863f]" type="button">
+              Submit
+            </button>
           </div>
+        </div>
 
-          <h2 className="mb-3 text-xl font-semibold text-gray-900">
-            Description
-          </h2>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <section className="h-fit overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm lg:h-[calc(100vh-155px)] lg:overflow-y-auto">
+            <div className="flex items-center gap-5 border-b border-gray-200 px-4 pt-1 text-sm">
+              {["Description", "Editorial", "Solutions", "Submissions"].map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setActiveLeftTab(tab)}
+                  className={`border-b-2 py-3 transition ${
+                    activeLeftTab === tab
+                      ? "border-[#ffa116] font-semibold text-gray-900"
+                      : "border-transparent text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
 
-          <p className="whitespace-pre-line leading-8 text-gray-700">
-            {problem.description}
-          </p>
-
-          {problem.visibleTestCases && problem.visibleTestCases.length > 0 && (
-            <section className="mt-10">
-              <h2 className="mb-4 text-xl font-semibold text-gray-900">
-                Examples
-              </h2>
-
-              <div className="space-y-4">
-                {problem.visibleTestCases.map((testCase, index) => (
-                  <div
-                    key={index}
-                    className="rounded-lg bg-gray-50 p-4"
-                  >
-                    <p className="font-semibold text-gray-800">
-                      Example {index + 1}
-                    </p>
-
-                    <p className="mt-2 text-sm text-gray-600">
-                      <strong>Input:</strong> {testCase.input}
-                    </p>
-
-                    <p className="mt-1 text-sm text-gray-600">
-                      <strong>Output:</strong> {testCase.output}
-                    </p>
-
-                    <p className="mt-1 text-sm text-gray-600">
-                      <strong>Explanation:</strong> {testCase.explanation}
-                    </p>
-                  </div>
+            <div className="border-b border-gray-200 px-5 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {problem.title}
+                </h1>
+                <span className="rounded-full bg-orange-100 px-3 py-1 text-sm font-semibold capitalize text-orange-700">
+                  {problem.difficulty}
+                </span>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {problem.tags.map((tag) => (
+                  <span key={tag} className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600">
+                    {tag}
+                  </span>
                 ))}
               </div>
-            </section>
-          )}
+            </div>
+
+            <div className="space-y-8 p-5 sm:p-7">
+              {activeLeftTab === "Description" ? (
+                <>
+                  <section>
+                    <h2 className="mb-3 text-lg font-semibold text-gray-900">
+                      Description
+                    </h2>
+                    <p className="whitespace-pre-line leading-7 text-gray-700">
+                      {problem.description}
+                    </p>
+                  </section>
+
+                  {problem.visibleTestCases && problem.visibleTestCases.length > 0 && (
+                    <section>
+                      <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                        Examples
+                      </h2>
+
+                      <div className="space-y-4">
+                        {problem.visibleTestCases.map((testCase, index) => (
+                          <div key={index} className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                            <p className="mb-3 font-semibold text-gray-800">Example {index + 1}</p>
+                            <p className="text-sm text-gray-600"><strong>Input:</strong> {testCase.input}</p>
+                            <p className="mt-1 text-sm text-gray-600"><strong>Output:</strong> {testCase.output}</p>
+                            <p className="mt-1 text-sm text-gray-600"><strong>Explanation:</strong> {testCase.explanation}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+                </>
+              ) : (
+                <div className="rounded-lg bg-gray-50 p-6 text-sm text-gray-500">
+                  {activeLeftTab} content will be available soon.
+                </div>
+              )}
+            </div>
+          </section>
+
+          <section
+            className="flex min-h-[680px] flex-col overflow-hidden rounded-lg border border-[#3d3d3d] shadow-sm lg:h-[calc(100vh-155px)] lg:min-h-[650px]"
+            style={{ backgroundColor: "#1e1e1e" }}
+          >
+            <div
+              className="flex items-center justify-between border-b border-[#3d3d3d] px-4 py-2.5"
+              style={{ backgroundColor: "#282828" }}
+            >
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full bg-red-400" />
+                <span className="h-3 w-3 rounded-full bg-yellow-400" />
+                <span className="h-3 w-3 rounded-full bg-green-400" />
+                <div className="ml-3 flex gap-4 text-sm">
+                  <span className="border-b-2 border-[#ffa116] pb-2 text-white">Code</span>
+                  <span className="pb-2 text-gray-500">Testcase</span>
+                </div>
+              </div>
+
+              <select
+                value={selectedLanguage}
+                onChange={(event) => handleLanguageChange(event.target.value)}
+                className="select select-xs border-gray-600 text-gray-200"
+                style={{ backgroundColor: "#1e1e1e", color: "#d4d4d4" }}
+              >
+                {problem.starterCode?.map((starter) => (
+                  <option key={starter.language} value={starter.language}>
+                    {starter.language}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="min-h-0 flex-1" style={{ backgroundColor: "#1e1e1e" }}>
+              <CodeEditor
+                code={code}
+                language={selectedLanguage}
+                onChange={setCode}
+              />
+            </div>
+
+            <div
+              className="border-t border-[#3d3d3d] px-4 py-3"
+              style={{ backgroundColor: "#252525" }}
+            >
+              <div className="flex items-center gap-2 text-sm font-semibold text-gray-200">
+                <span className="text-green-400">›_</span>
+                Test Result
+              </div>
+              <p className="mt-2 text-xs text-gray-500">
+                Run or submit your code to see the result here.
+              </p>
+            </div>
+
+            <div
+              className="flex items-center justify-between border-t border-gray-700 px-4 py-3"
+              style={{ backgroundColor: "#282828" }}
+            >
+              <span className="text-xs text-gray-400">
+                {code.length} characters
+              </span>
+              <button
+                type="button"
+                className="btn btn-sm border-0 bg-[#ffa116] px-5 text-white hover:bg-[#e89000]"
+              >
+                Submit solution
+              </button>
+            </div>
+          </section>
         </div>
       </main>
     </div>
