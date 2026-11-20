@@ -38,6 +38,13 @@ export interface RunCodeResult {
   memory: number | null;
 }
 
+export interface SubmissionPagination {
+  page: number;
+  limit: number;
+  totalSubmissions: number;
+  totalPages: number;
+}
+
 export const createSubmission = async (
   data: CreateSubmissionPayload,
   accessToken: string,
@@ -111,4 +118,42 @@ export const runCode = async (
   }
 
   return result.data;
+};
+
+export const getMySubmissions = async (
+  accessToken: string,
+  page = 1,
+  limit = 10,
+  status?: string,
+) => {
+  const query = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+
+  if (status) {
+    query.set("status", status);
+  }
+
+  const response = await fetch(
+    `http://localhost:5000/api/v1/submissions/me?${query.toString()}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      credentials: "include",
+    },
+  );
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to fetch submissions");
+  }
+
+  return {
+    submissions: result.data as SubmissionResult[],
+    pagination: result.pagination as SubmissionPagination,
+  };
 };
