@@ -7,7 +7,7 @@ export interface RegisterPayload {
     password: string;
 }
 
-const API_BASE_URL = "http://localhost:5000/api/v1";
+import { API_BASE_URL } from "../config/api";
 export const registerUser = async(data: RegisterPayload) => {
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",

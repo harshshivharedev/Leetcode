@@ -49,7 +49,7 @@ export const createSubmission = async (
   data: CreateSubmissionPayload,
   accessToken: string,
 ) => {
-  const response = await fetch("http://localhost:5000/api/v1/submissions", {
+  const response = await fetch(`${API_BASE_URL}/submissions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -75,7 +75,7 @@ export const getSubmissionById = async (
   accessToken: string,
 ): Promise<SubmissionResult> => {
   const response = await fetch(
-    `http://localhost:5000/api/v1/submissions/${submissionId}`,
+    `${API_BASE_URL}/submissions/${submissionId}`,
     {
       method: "GET",
       credentials: "include",
@@ -99,7 +99,7 @@ export const runCode = async (
   accessToken: string,
 ): Promise<RunCodeResult[]> => {
   const response = await fetch(
-    "http://localhost:5000/api/v1/submissions/run",
+    `${API_BASE_URL}/submissions/run`,
     {
       method: "POST",
       headers: {
@@ -136,7 +136,7 @@ export const getMySubmissions = async (
   }
 
   const response = await fetch(
-    `http://localhost:5000/api/v1/submissions/me?${query.toString()}`,
+    `${API_BASE_URL}/submissions/me?${query.toString()}`,
     {
       method: "GET",
       headers: {
@@ -157,3 +157,5 @@ export const getMySubmissions = async (
     pagination: result.pagination as SubmissionPagination,
   };
 };
+import { API_BASE_URL } from "../config/api";
+
