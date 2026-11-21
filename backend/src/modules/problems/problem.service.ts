@@ -38,6 +38,12 @@ export const getPublishedProblems = async () => {
     return problems;
 }
 
+export const getAllProblemsForAdmin = async () => {
+    return Problem.find()
+        .select("+hiddenTestCases +referenceSolution")
+        .sort({ createdAt: -1 });
+};
+
 
 export const getProblemBySlug = async(
     slug: string

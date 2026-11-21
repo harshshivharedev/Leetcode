@@ -40,7 +40,7 @@ function AdminPage() {
           </Link>
 
           <Link
-            to="/problems"
+            to="/admin/problems"
             className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
           >
             <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-lg bg-blue-100 text-xl text-blue-600">

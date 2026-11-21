@@ -9,7 +9,20 @@ import {
     updateProblemPublishStatus,
     updateProblem,
     deleteProblem
+    , getAllProblemsForAdmin
 } from "./problem.service.js";
+
+export const getAllProblemsForAdminController = asyncHandler(
+    async (_req: Request, res: Response) => {
+        const problems = await getAllProblemsForAdmin();
+
+        res.status(200).json({
+            success: true,
+            message: "Admin problems fetched successfully",
+            data: problems,
+        });
+    },
+);
 
 
 

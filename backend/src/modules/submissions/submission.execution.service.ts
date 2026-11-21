@@ -1,6 +1,31 @@
 import { submitCodeToJudge0, waitForJudge0Result } from "../../common/clients/judge0.client.js";
 import { HiddenTestCase, VisibleTestCase } from "../problems/problem.types.js";
 
+const prepareSourceCode = (sourceCode: string, languageId: number) => {
+    if (languageId !== 63) {
+        return sourceCode;
+    }
+
+    return `${sourceCode}
+
+const rawInput = require("fs").readFileSync(0, "utf8").trim();
+let input;
+
+try {
+  input = JSON.parse(rawInput);
+} catch {
+  const legacyInput = rawInput.match(/nums\\s*=\\s*(\\[[\\s\\S]*?\\])\\s*,\\s*target\\s*=\\s*(-?\\d+)/);
+
+  if (!legacyInput) {
+    throw new Error("Input must be JSON, for example [[2,7,11,15],9]");
+  }
+
+  input = [JSON.parse(legacyInput[1]), Number(legacyInput[2])];
+}
+
+const result = solution(...input);
+console.log(JSON.stringify(result));`;
+};
 
 
 export const runSubmissionTestCase = async(
@@ -9,7 +34,7 @@ export const runSubmissionTestCase = async(
     testCase: HiddenTestCase,
 ) => {
     const judge0Token = await submitCodeToJudge0({
-        sourceCode,
+        sourceCode: prepareSourceCode(sourceCode, languageId),
         languageId,
         stdin: testCase.input,
         expectedOutput: testCase.output,

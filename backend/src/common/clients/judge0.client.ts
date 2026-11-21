@@ -82,7 +82,7 @@ export const getSubmissionResultFromJudge0 = async (token: string) => {
 //  polling reusable function for every queue 
 
 export const waitForJudge0Result = async(token: string) => {
-    const maxAttemps = 10;
+    const maxAttemps = 30;
     const delayInMilliSeconds = 1000;
 
     for(let attempt = 1; attempt <= maxAttemps; attempt++){

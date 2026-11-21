@@ -45,6 +45,14 @@ function Navbar() {
             <Link className="text-sm font-medium text-gray-600 hover:text-[#ffa116]" to="/profile">
               Profile
             </Link>
+            {user.role === "admin" && (
+              <Link
+                className="text-sm font-semibold text-[#d97706] hover:text-[#b45309]"
+                to="/admin"
+              >
+                Admin
+              </Link>
+            )}
             <button className="btn btn-sm btn-outline" type="button" onClick={handleLogout}>
               Logout
             </button>

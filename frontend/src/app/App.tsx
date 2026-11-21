@@ -12,6 +12,8 @@ import ProfilePage from "../pages/ProfilePage";
 import AdminPage from "../pages/AdminPage";
 import AdminRoute from "../components/auth/AdminRoute";
 import CreateProblemPage from "../pages/admin/CreateProblemPage";
+import ManageProblemsPage from "../pages/admin/ManageProblemsPage";
+import EditProblemPage from "../pages/admin/EditProblemPage";
 import { refreshAccessToken, getCurrentUser } from "../services/auth.service";
 import { login as loginAction } from "../store/slices/authSlice";
 import type { AppDispatch } from "../store/store";
@@ -69,6 +71,8 @@ function App() {
                 <Route element={<AdminRoute />}>
                     <Route path="/admin" element={<AdminPage />} />
                     <Route path="/admin/problems/new" element={<CreateProblemPage />} />
+                    <Route path="/admin/problems" element={<ManageProblemsPage />} />
+                    <Route path="/admin/problems/:problemId/edit" element={<EditProblemPage />} />
                 </Route>
             </Route>
 
