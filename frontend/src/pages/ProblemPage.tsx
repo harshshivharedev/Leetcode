@@ -16,6 +16,13 @@ import {
   type Problem,
 } from "../services/problem.service";
 
+const supportedLanguages = [
+  { value: "javascript", label: "JavaScript" },
+  { value: "python", label: "Python" },
+  { value: "java", label: "Java" },
+  { value: "cpp", label: "C++" },
+];
+
 function ProblemPage() {
   const { slug } = useParams<{ slug: string }>();
   const [problem, setProblem] = useState<Problem | null>(null);
@@ -107,7 +114,9 @@ function ProblemPage() {
         const data = await getProblemBySlug(slug);
         setProblem(data);
 
-        const firstStarterCode = data.starterCode?.[0];
+        const firstStarterCode = data.starterCode?.find((starter) =>
+          supportedLanguages.some((language) => language.value === starter.language),
+        );
 
         if (firstStarterCode) {
           setSelectedLanguage(firstStarterCode.language);
@@ -398,9 +407,9 @@ function ProblemPage() {
                 className="select select-xs border-gray-600 text-gray-200"
                 style={{ backgroundColor: "#1e1e1e", color: "#d4d4d4" }}
               >
-                {problem.starterCode?.map((starter) => (
-                  <option key={starter.language} value={starter.language}>
-                    {starter.language}
+                {supportedLanguages.map((language) => (
+                  <option key={language.value} value={language.value}>
+                    {language.label}
                   </option>
                 ))}
               </select>

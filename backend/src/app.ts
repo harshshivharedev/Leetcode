@@ -14,7 +14,18 @@ app.use(helmet());
 
 app.use(
     cors({
-        origin: env.CLIENT_URL,
+        origin: (requestOrigin, callback) => {
+            const isAllowedVercelOrigin =
+                typeof requestOrigin === "string" &&
+                /^https:\/\/leetcode-[a-z0-9-]+\.vercel\.app$/.test(requestOrigin);
+
+            if (!requestOrigin || requestOrigin === env.CLIENT_URL || isAllowedVercelOrigin) {
+                callback(null, true);
+                return;
+            }
+
+            callback(new Error("Origin is not allowed by CORS"));
+        },
         credentials: true
     }),
 );
