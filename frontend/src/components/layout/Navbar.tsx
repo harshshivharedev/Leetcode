@@ -53,13 +53,13 @@ function Navbar() {
                 Admin
               </Link>
             )}
-            <button className="btn btn-sm btn-outline" type="button" onClick={handleLogout}>
+            <button className="btn btn-sm border-gray-300 bg-white text-gray-800 hover:bg-gray-100" type="button" onClick={handleLogout}>
               Logout
             </button>
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <Link className="btn btn-sm btn-ghost" to="/login">Log in</Link>
+            <Link className="btn btn-sm border-0 bg-white text-gray-700 hover:bg-gray-100" to="/login">Log in</Link>
             <Link className="btn btn-sm bg-[#ffa116] text-white hover:bg-[#e89000]" to="/signup">Sign up</Link>
           </div>
         )}

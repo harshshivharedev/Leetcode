@@ -25,7 +25,7 @@ function HeroSection() {
             <Link className="btn border-0 bg-[#ffa116] px-6 text-white hover:bg-[#e89000]" to="/problems">
               Start solving
             </Link>
-            <Link className="btn btn-outline px-6" to="/signup">
+          <Link className="btn border-gray-300 bg-white px-6 text-gray-800 hover:bg-gray-100" to="/signup">
               Create free account
             </Link>
           </div>
