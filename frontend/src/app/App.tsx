@@ -9,6 +9,9 @@ import ProblemPage from "../pages/ProblemPage";
 import SubmissionsPage from "../pages/SubmissionsPage";
 import SubmissionDetailPage from "../pages/SubmissionDetailPage";
 import ProfilePage from "../pages/ProfilePage";
+import AdminPage from "../pages/AdminPage";
+import AdminRoute from "../components/auth/AdminRoute";
+import CreateProblemPage from "../pages/admin/CreateProblemPage";
 import { refreshAccessToken, getCurrentUser } from "../services/auth.service";
 import { login as loginAction } from "../store/slices/authSlice";
 import type { AppDispatch } from "../store/store";
@@ -60,6 +63,13 @@ function App() {
                 <Route path="/submissions" element={<SubmissionsPage />} />
                 <Route path="/submissions/:submissionId" element={<SubmissionDetailPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
+            </Route>
+
+            <Route element={<ProtectedRoute />}>
+                <Route element={<AdminRoute />}>
+                    <Route path="/admin" element={<AdminPage />} />
+                    <Route path="/admin/problems/new" element={<CreateProblemPage />} />
+                </Route>
             </Route>
 
           </Routes>
