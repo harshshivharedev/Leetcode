@@ -1,130 +1,148 @@
 # CodeArena
 
-CodeArena is a full-stack online coding platform inspired by LeetCode. Users can browse coding problems, write solutions in a Monaco-based editor, run code against visible test cases, submit solutions for asynchronous evaluation, and track their submission history.
-
-The project also includes an admin workflow for creating, editing, publishing, and deleting coding problems.
+CodeArena is a full-stack online coding platform inspired by LeetCode. Browse coding problems, write solutions in the Monaco editor, run code against visible test cases, and submit solutions for evaluation against hidden test cases.
 
 ## Live Demo
 
-- Frontend: https://leetcode-rho-five.vercel.app
-- Backend health check: https://leetcode-hsxg.onrender.com/health
+- **Frontend:** [https://leetcode-rho-five.vercel.app](https://leetcode-rho-five.vercel.app)
+- **API health:** [https://leetcode-hsxg.onrender.com/health](https://leetcode-hsxg.onrender.com/health)
+- **API base URL:** `https://leetcode-hsxg.onrender.com/api/v1`
 
-> The live deployment may sleep on free hosting plans. The first request can therefore take a few seconds.
+> The API is hosted on a free service and may sleep when idle. Its first request after a period of inactivity can take a little longer.
 
-## Highlights
+## Features
 
-- JWT-based authentication with access and refresh tokens
-- Secure password hashing with bcryptjs
-- Role-based admin authorization
-- Zod validation for request payloads and environment variables
-- Problem creation, editing, publishing, unpublishing, and deletion
-- Visible and hidden test-case support
-- Monaco code editor with JavaScript, Python, Java, and C++ options
-- Code execution through Judge0
-- Asynchronous submission processing with BullMQ and Redis
-- Submission polling with status, runtime, memory, and error details
-- User submission history with pagination and status filtering
+- User registration, login, and logout with JWT access and refresh tokens
+- Password hashing with bcryptjs
+- Role-based authorization for admin features
+- Browse published coding problems and view problem details
+- Admin workflow to create, edit, publish, unpublish, and delete problems
+- Visible and hidden test cases
+- Monaco-based code editor with JavaScript, Python, Java, and C++ options
+- Run code against visible test cases and submit solutions for evaluation
+- Asynchronous code execution using BullMQ and Redis, with Judge0
+- Submission status, runtime, memory, and error details
+- Paginated submission history with status filtering
 - User profile management
-- Responsive React interface built with Tailwind CSS and DaisyUI
-- Centralized API error handling and async request handling
-- Production-ready separation of API server and background worker
+- Responsive interface built with React, Tailwind CSS, and DaisyUI
+
+## How submissions work
+
+1. The frontend sends the code, selected language, problem ID, and access token to the API.
+2. The API creates a submission with a pending status and adds a job to Redis through BullMQ.
+3. The background worker loads the problem and its hidden test cases.
+4. The worker sends the code and test cases to Judge0 for execution.
+5. The result is saved to MongoDB with a final status, such as `accepted`, `wrong_answer`, or `runtime_error`.
+6. The frontend polls the API and displays the submission result.
 
 ## Architecture
 
 ```text
-React + Vite frontend
-          │
-          │ REST API
-          ▼
-Express + TypeScript API server
-     │          │           │
-     │          │           └── MongoDB Atlas
-     │          └── Redis / BullMQ queue
-     └── JWT authentication
-
-BullMQ worker ──► Judge0 ──► submission result ──► MongoDB
+Browser
+  │
+  ▼
+React + Vite frontend (Vercel)
+  │ REST API
+  ▼
+Express + TypeScript API (Render)
+  ├── MongoDB Atlas
+  └── Redis / BullMQ
+         │
+         ▼
+   Background worker (Render)
+         │
+         ▼
+       Judge0
 ```
-
-### Request flow for a submission
-
-1. The frontend sends code, language, problem ID, and access token.
-2. The API creates a submission with `pending` status.
-3. A BullMQ job is added to Redis.
-4. The background worker loads the problem and hidden test cases.
-5. The worker sends each test case to Judge0.
-6. The result is saved as `accepted`, `wrong_answer`, `runtime_error`, or another final status.
-7. The frontend polls the submission endpoint and displays the result.
 
 ## Technology Stack
 
 ### Frontend
 
-- React 19
-- TypeScript
-- Vite
+- React 19, TypeScript, and Vite
 - React Router
 - Redux Toolkit and React Redux
-- React Hook Form
-- Zod and `@hookform/resolvers`
+- React Hook Form and Zod
 - Monaco Editor
-- Tailwind CSS
-- DaisyUI
+- Tailwind CSS and DaisyUI
 
 ### Backend
 
-- Node.js
-- Express 5
-- TypeScript with strict mode
+- Node.js and Express 5
+- TypeScript
 - MongoDB and Mongoose
-- Redis and ioredis
-- BullMQ
+- Redis, ioredis, and BullMQ
 - Judge0
 - JWT and bcryptjs
-- Zod
-- Helmet and CORS
+- Zod, Helmet, and CORS
 
-## Project Structure
+## Deployment
 
-```text
-.
-├── backend/
-│   └── src/
-│       ├── common/          # errors, middleware, utilities, Judge0 client
-│       ├── config/          # environment, database, Redis configuration
-│       ├── modules/
-│       │   ├── auth/
-│       │   ├── users/
-│       │   ├── admin/
-│       │   ├── problems/
-│       │   └── submissions/
-│       ├── queue/            # BullMQ queues
-│       ├── routes/            # API route composition
-│       ├── workers/           # background submission worker
-│       ├── app.ts
-│       └── server.ts
-│
-├── frontend/
-│   └── src/
-│       ├── app/               # application routes and bootstrap
-│       ├── components/        # reusable UI components
-│       ├── pages/             # user and admin pages
-│       ├── services/          # API clients
-│       ├── store/             # Redux store and slices
-│       └── config/            # frontend API configuration
-│
-└── README.md
+This project is deployed as separate frontend, API, and worker services:
+
+| Service | Hosting | Configuration |
+| --- | --- | --- |
+| Frontend | Vercel | Set the project root directory to `frontend` |
+| API server | Render Web Service | Set the root directory to `backend`; start with `npm start` |
+| Submission worker | Render Background Worker | Set the root directory to `backend`; start with `npm run worker` |
+| Database | MongoDB Atlas | Configure the connection string as `MONGO_URI` |
+| Queue | Upstash Redis or another hosted Redis provider | Configure the connection URL as `REDIS_URL` |
+| Code execution | Judge0 | Configure the service URL as `JUDGE0_BASE_URL` |
+
+### Frontend environment variable
+
+Set this in the Vercel project settings for the deployed frontend, then redeploy:
+
+```env
+VITE_API_BASE_URL=https://leetcode-hsxg.onrender.com/api/v1
 ```
 
-## Local Development
+### Backend and worker environment variables
 
-### Requirements
+Configure these in the Render environment settings for **both** the API service and worker. Use the same MongoDB and Redis connections for both processes.
 
-- Node.js 20+
-- MongoDB instance or MongoDB Atlas
-- Redis instance
-- Judge0 API access
+```env
+NODE_ENV=production
+MONGO_URI=<your MongoDB connection string>
+REDIS_URL=<your Redis connection URL>
+JWT_ACCESS_SECRET=<strong random secret, at least 16 characters>
+JWT_REFRESH_SECRET=<a different strong random secret, at least 16 characters>
+CLIENT_URL=https://leetcode-rho-five.vercel.app
+JUDGE0_BASE_URL=<your Judge0 service URL>
+```
 
-### Backend setup
+Render provides the service port through the environment. The backend defaults to port `5000` if `PORT` is not set.
+
+> Never commit `.env` files, database credentials, tokens, or production secrets. Set secrets in your hosting provider's environment settings.
+
+### Deployment checks
+
+- Open `https://leetcode-hsxg.onrender.com/health` and confirm the API responds.
+- Confirm the Vercel `VITE_API_BASE_URL` points to the deployed API and includes `/api/v1`.
+- Confirm `CLIENT_URL` matches the deployed frontend origin.
+- Confirm the API and worker use the same `MONGO_URI` and `REDIS_URL`.
+- Confirm the worker is running; queued submissions need it to be processed.
+
+## Local Development (Optional)
+
+The live demo above is the deployed version. To run the project locally for development, you will need Node.js 20+, MongoDB, Redis, and Judge0 API access.
+
+### 1. Configure the backend
+
+Create `backend/.env` with your local development values:
+
+```env
+NODE_ENV=development
+PORT=5000
+MONGO_URI=mongodb://127.0.0.1:27017/codearena
+REDIS_URL=redis://localhost:6379
+JWT_ACCESS_SECRET=replace-with-a-random-secret-at-least-16-characters
+JWT_REFRESH_SECRET=replace-with-a-different-random-secret
+CLIENT_URL=http://localhost:5173
+JUDGE0_BASE_URL=<your Judge0 service URL>
+```
+
+Then start the API:
 
 ```bash
 cd backend
@@ -132,14 +150,14 @@ npm install
 npm run dev
 ```
 
-Run the worker in a second terminal:
+In another terminal, start the background worker:
 
 ```bash
 cd backend
 npm run worker
 ```
 
-### Frontend setup
+### 2. Start the frontend
 
 ```bash
 cd frontend
@@ -147,106 +165,87 @@ npm install
 npm run dev
 ```
 
-The frontend normally runs at `http://localhost:5173` and the backend at `http://localhost:5000`.
+For local development, the frontend runs at `http://localhost:5173` and the API at `http://localhost:5000` by default. The frontend API configuration falls back to `http://localhost:5000/api/v1` when `VITE_API_BASE_URL` is not set.
 
-## Environment Variables
+## API
 
-Create `backend/.env` locally:
-
-```env
-NODE_ENV=development
-PORT=5000
-MONGO_URI=mongodb://127.0.0.1:27017/codearena
-REDIS_URL=redis://localhost:6379
-JWT_ACCESS_SECRET=replace-with-a-long-access-secret
-JWT_REFRESH_SECRET=replace-with-a-long-refresh-secret
-CLIENT_URL=http://localhost:5173
-JUDGE0_BASE_URL=https://your-judge0-host
-```
-
-For the deployed frontend, configure:
-
-```env
-VITE_API_BASE_URL=https://leetcode-hsxg.onrender.com/api/v1
-```
-
-Never commit `.env` files or production secrets.
-
-## Available Scripts
-
-### Backend
-
-```bash
-npm run dev        # start the API in watch mode
-npm run build      # compile TypeScript
-npm start          # start compiled production server
-npm run worker     # start the submission worker
-npm run typecheck  # run TypeScript checks
-```
-
-### Frontend
-
-```bash
-npm run dev        # start Vite development server
-npm run build      # typecheck and create production build
-npm run preview    # preview the production build
-npm run lint       # run ESLint
-```
-
-## API Areas
-
-Base URL:
+The deployed API base URL is:
 
 ```text
-/api/v1
+https://leetcode-hsxg.onrender.com/api/v1
 ```
 
 Main route groups:
 
 ```text
-/auth          register, login, logout, refresh token
-/users         current user and profile updates
-/problems      published problem list and details
-/admin         admin-only operations
-/submissions   create, run, inspect, and paginate submissions
+/auth          Registration, login, logout, and refresh token
+/users         Current user and profile updates
+/problems      Published problem list and details
+/admin         Admin-only operations
+/submissions   Create, run, inspect, and paginate submissions
 ```
 
-The health endpoint is available at:
+Health check: `https://leetcode-hsxg.onrender.com/health`
+
+## Available Scripts
+
+Run these commands from the relevant directory (`backend` or `frontend`).
+
+### Backend
+
+```bash
+npm run dev        # Start the API in watch mode
+npm run build      # Compile TypeScript
+npm start          # Start the compiled production API
+npm run worker     # Start the submission worker
+npm run typecheck  # Run TypeScript checks
+```
+
+### Frontend
+
+```bash
+npm run dev        # Start the Vite development server
+npm run build      # Typecheck and create the production build
+npm run preview    # Preview the production build
+npm run lint       # Run ESLint
+```
+
+## Project Structure
 
 ```text
-/health
+.
+├── backend/
+│   └── src/
+│       ├── common/       # Errors, middleware, utilities, Judge0 client
+│       ├── config/       # Environment, database, and Redis configuration
+│       ├── modules/      # Auth, users, admin, problems, submissions
+│       ├── queue/        # BullMQ queues
+│       ├── routes/       # API route composition
+│       ├── workers/      # Background submission worker
+│       ├── app.ts
+│       └── server.ts
+├── frontend/
+│   └── src/
+│       ├── app/          # Application routes and bootstrap
+│       ├── components/   # Reusable UI components
+│       ├── pages/        # User and admin pages
+│       ├── services/     # API clients
+│       ├── store/        # Redux store and slices
+│       └── config/       # Frontend API configuration
+└── README.md
 ```
 
-## Deployment
+## Engineering Practices
 
-Recommended deployment layout:
-
-- Frontend: Vercel, with `frontend` as the root directory
-- API server: Render Web Service, with `backend` as the root directory
-- Submission worker: Render Background Worker
-- Database: MongoDB Atlas
-- Redis: Upstash or another hosted Redis provider
-
-The API server and worker must share the same `MONGO_URI` and `REDIS_URL`. The worker is a separate process because submission execution is asynchronous and should not block API requests.
-
-## Engineering Practices Demonstrated
-
-- Feature-based backend module organization
-- Controller/service separation
-- Centralized error middleware
-- Reusable async handler
-- Runtime validation at API and environment boundaries
-- Role-based authorization middleware
-- Queue-based processing for long-running work
+- Feature-based backend organization with controller/service separation
+- Centralized error handling and reusable async request handling
+- Runtime validation for API payloads and environment variables
+- Role-based authorization
+- Queue-based processing for long-running code execution
 - Database indexes for submission history queries
-- Public/private separation of problem test data
-- Environment-based configuration
-- Separate frontend API configuration for local and production environments
-
-## Current Scope
-
-CodeArena currently focuses on the core online-judge experience: authentication, problem management, code execution, asynchronous submissions, and submission history. Future improvements can include richer analytics, rate limiting, token rotation, multi-device refresh sessions, stronger sandboxing, editorial content, and expanded admin tooling.
+- Separation of public problem data and hidden test cases
+- Environment-based configuration for local and deployed environments
 
 ## License
 
-This project is currently intended for learning, portfolio, and demonstration purposes.
+This project is intended for learning, portfolio, and demonstration purposes.
